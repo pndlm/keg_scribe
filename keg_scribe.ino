@@ -23,6 +23,8 @@ All text above must be included in any redistribution
 // which pin to use for reading the sensor? can use any pin!
 #define FLOWSENSORPIN 2
 
+#define IMPORT_CODE "BeerTap1"
+
 // count how many pulses!
 volatile uint16_t pulses = 0;
 // track the state of the pulse pin
@@ -73,6 +75,8 @@ void setup() {
    useInterrupt(true);
 }
 
+int milliseconds = 0;
+
 void loop()                     // run over and over again
 { 
   //lcd.setCursor(0, 0);
@@ -106,6 +110,13 @@ void loop()                     // run over and over again
   Serial.println(" Liters");
   //lcd.setCursor(0, 1);
   //lcd.print(liters); lcd.print(" Liters        ");
+  
+  milliseconds += 100;
+  if (milliseconds > 1000*30) {
+    reportValue(IMPORT_CODE, liters);
+    pulses = 0;
+    milliseconds = 0;
+  }
  
   delay(100);
 }
