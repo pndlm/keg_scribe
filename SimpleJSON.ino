@@ -46,7 +46,7 @@ int reportValue(char importCode[], time_t t, float value) {
   uint32_t ip = 0;
   
   // hard coded for now. :(
-  ip = cc3000->IP2U32(10, 0, 1, 9);
+  ip = cc3000->IP2U32(HARD_CODED_IP);
   
   // Try looking up the website's IP address
   Serial.print(WEBSITE); Serial.print(F(" -> "));

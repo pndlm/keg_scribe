@@ -41,9 +41,9 @@ All text above must be included in any redistribution
 // number of milliseconds between reads
 #define LOOP_INTERVAL 100
 // number of milliseconds between reports
-#define REPORT_INTERVAL 1000*60*5
+#define REPORT_INTERVAL (1000UL*60UL*5UL)
 // number of seconds between calls to the NTP server
-#define NTP_INTERVAL 60*60*24
+#define NTP_INTERVAL (60*60*24)
 
 // count how many pulses!
 volatile uint16_t pulses = 0;
@@ -101,7 +101,7 @@ void setup() {
 }
 
 // start at -1*REPORT_INTERVAL so we always report at startup
-int millisSinceLastReport = -1*REPORT_INTERVAL;
+unsigned long millisSinceLastReport = -1*REPORT_INTERVAL;
 
 void loop()                     // run over and over again
 { 
@@ -115,7 +115,7 @@ void loop()                     // run over and over again
   float temperatureF = readTemperatureF(TEMPERATURE_ANALOG_PIN);
   float tap1L = readTapLiters();
   
-  if (millis() > millisSinceLastReport + REPORT_INTERVAL) {
+  if (millis() > (millisSinceLastReport + REPORT_INTERVAL)) {
 
     time_t currentTime = now();
     //char timeString[50];
