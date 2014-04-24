@@ -107,14 +107,14 @@ char* createJSONString(char importCode[], char utcTimeStamp[], float value) {
              "{"
                 "\"importCode\": \"%s\", "
                 "\"utcTimeStamp\": %s, "
-                "\"value\":\"%.5g\""
+                "\"value\":\"%5f\""
              "}",
              importCode, utcTimeStamp, value);
   
     return result;
 }
 
-void reportValue(char importCode[], float value) {
+int reportValue(char importCode[], float value) {
   
   char contentSizeString[50];
   char* content = createJSONString(importCode, "1398292028", value);
@@ -128,7 +128,8 @@ void reportValue(char importCode[], float value) {
     if (! cc3000.getHostByName(WEBSITE, &ip)) {
       Serial.println(F("Couldn't resolve!"));
     }
-    delay(500);
+    free(content);
+    return 1;
   }
 
   cc3000.printIPdotsRev(ip);
@@ -143,20 +144,16 @@ void reportValue(char importCode[], float value) {
     www.fastrprint(F(" HTTP/1.1\r\n"));
     www.fastrprint(F("Accept: */*\r\n"));
     www.fastrprint(F("Cache-Control: no-cache\r\n"));
-    www.fastrprint(F("\r\n"));
-    www.fastrprint(F("\r\n"));
-    www.fastrprint(F("\r\n"));
     www.fastrprint(F("Content-Length: ")); www.fastrprint(contentSizeString); www.fastrprint(F("\r\n"));
     www.fastrprint(F("Content-Type: */*; charset=UTF-8\r\n"));
     www.fastrprint(F("User-Agent: KegScribe\r\n"));
-    www.fastrprint(F("\r\n"));
     www.fastrprint(F("Host: ")); www.fastrprint(WEBSITE); www.fastrprint(F("\r\n"));
     www.println();
     www.fastrprint(content);
   } else {
     Serial.println(F("Connection failed"));
     free(content);
-    return;
+    return 1;
   }
   
   free(content);
@@ -180,6 +177,7 @@ void reportValue(char importCode[], float value) {
   Serial.println(F("\n\nDisconnecting"));
   cc3000.disconnect(); 
   
+  return 0;
 }
 
 
