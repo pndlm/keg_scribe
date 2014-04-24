@@ -1,3 +1,10 @@
+#include <Adafruit_CC3000.h>
+#include <Adafruit_CC3000_Server.h>
+#include <ccspi.h>
+#include <SPI.h>
+#include <string.h>
+#include "utility/debug.h"
+
 /**********************************************************
 This is example code for using the Adafruit liquid flow meters. 
 
@@ -21,9 +28,17 @@ All text above must be included in any redistribution
 //LiquidCrystal lcd(7, 8, 9, 10, 11, 12);
 
 // which pin to use for reading the sensor? can use any pin!
-#define FLOWSENSORPIN 2
+#define TEMPERATURE_ANALOG_PIN 0
+#define FLOWSENSOR_DIGITAL_PIN 2
 
-#define IMPORT_CODE "BeerTap1"
+#define TEMPERATURE_IMPORT_CODE "KegScribeTemperature"
+#define TAP1_IMPORT_CODE "KegScribeTap1"
+#define TAP2_IMPORT_CODE "KegScribeTap2"
+
+// number of milliseconds between reads
+#define LOOP_INTERVAL 100
+// number of milliseconds between reports
+#define REPORT_INTERVAL 30000
 
 // count how many pulses!
 volatile uint16_t pulses = 0;
@@ -35,7 +50,7 @@ volatile uint32_t lastflowratetimer = 0;
 volatile float flowrate;
 // Interrupt is called once a millisecond, looks for any pulses from the sensor!
 SIGNAL(TIMER0_COMPA_vect) {
-  uint8_t x = digitalRead(FLOWSENSORPIN);
+  uint8_t x = digitalRead(FLOWSENSOR_DIGITAL_PIN);
   
   if (x == lastflowpinstate) {
     lastflowratetimer++;
@@ -65,20 +80,45 @@ void useInterrupt(boolean v) {
 }
 
 void setup() {
-   Serial.begin(9600);
+   Serial.begin(19200);
    Serial.print("Flow sensor test!");
    //lcd.begin(16, 2);
    
-   pinMode(FLOWSENSORPIN, INPUT);
-   digitalWrite(FLOWSENSORPIN, HIGH);
-   lastflowpinstate = digitalRead(FLOWSENSORPIN);
+   ConnectWifi();
+   
+   pinMode(FLOWSENSOR_DIGITAL_PIN, INPUT);
+   digitalWrite(FLOWSENSOR_DIGITAL_PIN, HIGH);
+   lastflowpinstate = digitalRead(FLOWSENSOR_DIGITAL_PIN);
    useInterrupt(true);
 }
 
-int milliseconds = 0;
+int milliseconds = 10000000;
 
 void loop()                     // run over and over again
 { 
+  float temperatureF = readTemperatureF(TEMPERATURE_ANALOG_PIN);
+  float tap1L = readTapLiters();
+  
+  if (milliseconds > REPORT_INTERVAL) {
+
+    Serial.print(temperatureF); Serial.println(" degrees F");
+    Serial.print(tap1L); Serial.println(" liters"); 
+    
+    // Report values to Hakase Server
+    reportValue(TEMPERATURE_IMPORT_CODE, temperatureF);
+    reportValue(TAP1_IMPORT_CODE, tap1L);
+    reportValue(TAP2_IMPORT_CODE, 0);
+    
+    // reset the interval and pulse counts
+    pulses = 0;
+    milliseconds = 0;
+  }
+ 
+  delay(LOOP_INTERVAL);
+  milliseconds += LOOP_INTERVAL;
+}
+
+float readTapLiters() {
   //lcd.setCursor(0, 0);
   //lcd.print("Pulses:"); 
   //lcd.print(pulses, DEC);
@@ -106,17 +146,28 @@ void loop()                     // run over and over again
   liters -= 6;
   liters /= 60.0;
 */
-  Serial.print(liters); 
-  Serial.println(" Liters");
   //lcd.setCursor(0, 1);
   //lcd.print(liters); lcd.print(" Liters        ");
-  
-  milliseconds += 100;
-  if (milliseconds > 1000*30) {
-    reportValue(IMPORT_CODE, liters);
-    pulses = 0;
-    milliseconds = 0;
-  }
+
+  return liters;  
+}
+
+float readTemperatureF(int sensorPin) {
  
-  delay(100);
+ int reading = analogRead(sensorPin);  
+ // converting that reading to voltage, for 3.3v arduino use 3.3
+ float voltage = reading * 5.0;
+ voltage /= 1024.0; 
+ 
+ // print out the voltage
+ Serial.print(voltage); Serial.println(" volts");
+ 
+ // now print out the temperature
+ float temperatureC = (voltage - 0.5) * 100 ;  //converting from 10 mv per degree wit 500 mV offset
+                                               //to degrees ((voltage - 500mV) times 100)
+ 
+ // now convert to Fahrenheit
+ float temperatureF = (temperatureC * 9.0 / 5.0) + 32.0;
+ 
+ return temperatureF;
 }
