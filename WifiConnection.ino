@@ -82,7 +82,7 @@ bool displayConnectionDetails(void)
   }
 }
 
-Adafruit_CC3000 getCC3000() {
-  return cc3000;
+Adafruit_CC3000* getCC3000() {
+  return &cc3000;
 }
 

@@ -97,7 +97,8 @@ void setup() {
    setSyncProvider(getNtpTime);
 }
 
-int milliseconds = REPORT_INTERVAL+1;
+// start at -1*REPORT_INTERVAL so we always report at startup
+int millisSinceLastReport = -1*REPORT_INTERVAL;
 
 void loop()                     // run over and over again
 { 
@@ -111,14 +112,15 @@ void loop()                     // run over and over again
   float temperatureF = readTemperatureF(TEMPERATURE_ANALOG_PIN);
   float tap1L = readTapLiters();
   
-  if (milliseconds > REPORT_INTERVAL) {
+  if (millis() > millisSinceLastReport + REPORT_INTERVAL) {
 
     time_t currentTime = now();
-    char timeString[50];
-    sprintTimeStamp(timeString, currentTime);
+    //char timeString[50];
+    //sprintTimeStamp(timeString, currentTime);
   
     Serial.print(F("Time: "));
-    Serial.println(timeString);
+    //Serial.println(timeString);
+    
     Serial.print(temperatureF); Serial.println(" degrees F");
     Serial.print(tap1L); Serial.println(" liters"); 
     
@@ -129,11 +131,10 @@ void loop()                     // run over and over again
     
     // reset the interval and pulse counts
     pulses = 0;
-    milliseconds = 0;
+    millisSinceLastReport = millis();
   }
  
   delay(LOOP_INTERVAL);
-  milliseconds += millis();
 }
 
 float readTapLiters() {

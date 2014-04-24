@@ -34,20 +34,23 @@ time_t getNtpTime() {
   Serial.println(F("UpdateNTPTime"));
   mysntp.UpdateNTPTime();
   
-  Serial.println(F("Current local time is:"));
+  Serial.println(F("Current UTC time is:"));
   mysntp.ExtractNTPTime(mysntp.NTPGetTime(&sntpTime, true), &timeExtract);
   
-  char time[50];
-  Serial.println(sprintTime(time, sntpTime.seconds - NTP_TO_UNIX));
-
+  Serial.print(timeExtract.year); Serial.print(F("-")); Serial.print(timeExtract.mon); Serial.print(F("-")); Serial.print(timeExtract.mday); Serial.print(F(" "));
+  Serial.print(timeExtract.hour); Serial.print(F(":")); Serial.print(timeExtract.min); Serial.print(F(":")); Serial.print(timeExtract.sec); Serial.print(F(".")); Serial.print(timeExtract.millis);
+  
   // seconds since 1900 - (seconds between 1900 and 1970)
   return sntpTime.seconds - NTP_TO_UNIX;
 }
 
 int sprintTimeStamp(char* s, time_t t) {
-  return sprintf(s, "%lu", t);
+  String boo = String(t);
+  boo.toCharArray(s, 50);
+  return boo.length();
 }
 
 int sprintTime(char* s, time_t t) {
-  return sprintf(s, "%02i-%02i-%02i %02i:%02i:%02i", year(t), month(t), day(t), hour(t), minute(t), second(t));
+  return 0;
+  //return sprintf(s, "%02i-%02i-%02i %02i:%02i:%02i", year(t), month(t), day(t), hour(t), minute(t), second(t));
 }
