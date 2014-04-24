@@ -42,6 +42,8 @@ All text above must be included in any redistribution
 #define LOOP_INTERVAL 100
 // number of milliseconds between reports
 #define REPORT_INTERVAL 1000*60*5
+// number of seconds between calls to the NTP server
+#define NTP_INTERVAL 60*60*24
 
 // count how many pulses!
 volatile uint16_t pulses = 0;
@@ -95,6 +97,7 @@ void setup() {
    useInterrupt(true);
    
    setSyncProvider(getNtpTime);
+   setSyncInterval(NTP_INTERVAL);
 }
 
 // start at -1*REPORT_INTERVAL so we always report at startup
