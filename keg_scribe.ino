@@ -41,7 +41,7 @@ All text above must be included in any redistribution
 // number of milliseconds between reads
 #define LOOP_INTERVAL 100
 // number of milliseconds between reports
-#define REPORT_INTERVAL 30000
+#define REPORT_INTERVAL 1000*60*5
 
 // count how many pulses!
 volatile uint16_t pulses = 0;
@@ -115,7 +115,7 @@ void loop()                     // run over and over again
 
     time_t currentTime = now();
     char timeString[50];
-    sprintTime(timeString, currentTime);
+    sprintTimeStamp(timeString, currentTime);
   
     Serial.print(F("Time: "));
     Serial.println(timeString);

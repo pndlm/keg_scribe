@@ -38,14 +38,14 @@ time_t getNtpTime() {
   mysntp.ExtractNTPTime(mysntp.NTPGetTime(&sntpTime, true), &timeExtract);
   
   char time[50];
-  printf("%s\r\n", sprintTime(time, sntpTime.seconds));
+  Serial.println(sprintTime(time, sntpTime.seconds - NTP_TO_UNIX));
 
   // seconds since 1900 - (seconds between 1900 and 1970)
   return sntpTime.seconds - NTP_TO_UNIX;
 }
 
 int sprintTimeStamp(char* s, time_t t) {
-  return sprintf(s, "%u", t);
+  return sprintf(s, "%lu", t);
 }
 
 int sprintTime(char* s, time_t t) {
