@@ -1,9 +1,12 @@
 #include <Adafruit_CC3000.h>
 #include <Adafruit_CC3000_Server.h>
+#include <Time.h> 
 #include <ccspi.h>
 #include <SPI.h>
 #include <string.h>
+#include <math.h>
 #include "utility/debug.h"
+#include "utility/sntp.h"
 
 /**********************************************************
 This is example code for using the Adafruit liquid flow meters. 
@@ -90,24 +93,39 @@ void setup() {
    digitalWrite(FLOWSENSOR_DIGITAL_PIN, HIGH);
    lastflowpinstate = digitalRead(FLOWSENSOR_DIGITAL_PIN);
    useInterrupt(true);
+   
+   setSyncProvider(getNtpTime);
 }
 
 int milliseconds = REPORT_INTERVAL+1;
 
 void loop()                     // run over and over again
 { 
+  
+  if (timeStatus() == timeNotSet) {
+    Serial.println("Time has not yet been set.");
+    delay(5000);
+    return;
+  }
+  
   float temperatureF = readTemperatureF(TEMPERATURE_ANALOG_PIN);
   float tap1L = readTapLiters();
   
   if (milliseconds > REPORT_INTERVAL) {
 
+    time_t currentTime = now();
+    char timeString[50];
+    sprintTime(timeString, currentTime);
+  
+    Serial.print(F("Time: "));
+    Serial.println(timeString);
     Serial.print(temperatureF); Serial.println(" degrees F");
     Serial.print(tap1L); Serial.println(" liters"); 
     
     // Report values to Hakase Server
-    reportValue(TEMPERATURE_IMPORT_CODE, temperatureF);
-    reportValue(TAP1_IMPORT_CODE, tap1L);
-    reportValue(TAP2_IMPORT_CODE, 0);
+    reportValue(TEMPERATURE_IMPORT_CODE, currentTime, temperatureF);
+    reportValue(TAP1_IMPORT_CODE, currentTime, tap1L);
+    reportValue(TAP2_IMPORT_CODE, currentTime, 0);
     
     // reset the interval and pulse counts
     pulses = 0;
