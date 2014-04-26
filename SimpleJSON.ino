@@ -1,12 +1,4 @@
 
-// What page to grab!
-#define WEBSITE      "mikazuki.local"
-#define WEBPAGE      "/import/simpleJSON"
-
-#define IDLE_TIMEOUT_MS  3000      // Amount of time to wait (in milliseconds) with no data 
-                                   // received before closing the connection.  If you know the server
-                                   // you're accessing is quick to respond, you can reduce this value.
-
 char* createJSONString(char importCode[], char utcTimeStamp[], float value) {
   char* result = new char[strlen(importCode) + strlen(utcTimeStamp) + 100];
   
@@ -42,7 +34,9 @@ int reportValue(char importCode[], time_t t, float value) {
   uint32_t ip = 0;
   
   // hard coded for now. :(
-  ip = cc3000->IP2U32(HARD_CODED_IP);
+  if (USE_HARD_CODED_IP) {
+    ip = cc3000->IP2U32(HARD_CODED_IP);
+  }
   
   // Try looking up the website's IP address
   // Serial.print(WEBSITE); Serial.print(F(" -> "));

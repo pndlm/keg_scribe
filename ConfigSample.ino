@@ -16,4 +16,15 @@ to the repository.
 // Comma, separated, hard coded IP of the Hakase Server
 #define USE_HARD_CODED_IP   true
 #define HARD_CODED_IP       172, 16, 25, 63
+
+// When not using a hard coded IP, use this address:
+#define WEBSITE      "my.hakase.server.com"
+
+// Use this path to report data on the Hakase server
+#define WEBPAGE      "/import/simpleJSON"
+
+#define IDLE_TIMEOUT_MS  3000      // Amount of time to wait (in milliseconds) with no data 
+                                   // received before closing the connection.  If you know the server
+                                   // you're accessing is quick to respond, you can reduce this value.
+
 */

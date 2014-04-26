@@ -31,10 +31,12 @@ All text above must be included in any redistribution
 //LiquidCrystal lcd(7, 8, 9, 10, 11, 12);
 
 // which pin to use for reading the sensor? can use any pin!
-#define TEMPERATURE_ANALOG_PIN 0
+#define TEMPERATURE1_ANALOG_PIN 0
+#define TEMPERATURE2_ANALOG_PIN 1
 #define FLOWSENSOR_DIGITAL_PIN 2
 
-#define TEMPERATURE_IMPORT_CODE "KegScribeTemperature"
+#define TEMPERATURE1_IMPORT_CODE "KegScribeAmbientTemperature"
+#define TEMPERATURE2_IMPORT_CODE "KegScribeFridgeTemperature"
 #define TAP1_IMPORT_CODE "KegScribeTap1"
 #define TAP2_IMPORT_CODE "KegScribeTap2"
 
@@ -111,7 +113,8 @@ void loop()                     // run over and over again
     Serial.println("Warning: Time has not yet been set.");
   }
     
-  float temperatureF = readTemperatureF(TEMPERATURE_ANALOG_PIN);
+  float temperature1 = readTemperatureF(TEMPERATURE1_ANALOG_PIN);
+  float temperature2 = readTemperatureF(TEMPERATURE2_ANALOG_PIN);
   float tap1L = readTapLiters();
   
   if (millis() > (millisSinceLastReport + REPORT_INTERVAL)) {
@@ -120,13 +123,15 @@ void loop()                     // run over and over again
     //char timeString[50];
     //sprintTimeStamp(timeString, currentTime);
     
-    Serial.print(temperatureF); Serial.println(" degrees F");
+    Serial.print(temperature1); Serial.println(" degrees F (Ambient)");
+    Serial.print(temperature2); Serial.println(" degrees F (Fridge)");
     Serial.print(tap1L); Serial.println(" liters"); 
     
     // Report values to Hakase Server
     
     // Report Temperature
-    reportValue(TEMPERATURE_IMPORT_CODE, currentTime, temperatureF);
+    reportValue(TEMPERATURE1_IMPORT_CODE, currentTime, temperature1);
+    reportValue(TEMPERATURE2_IMPORT_CODE, currentTime, temperature2);
     
     // Report Tap 1
     if(!reportValue(TAP1_IMPORT_CODE, currentTime, tap1L)) {
