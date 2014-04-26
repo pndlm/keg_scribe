@@ -11,7 +11,7 @@ char* createJSONString(char importCode[], char utcTimeStamp[], float value) {
   char* result = new char[strlen(importCode) + strlen(utcTimeStamp) + 100];
   
   int valueA = floor(value);
-  int valueB = floor(value-valueA * 10000);
+  int valueB = floor((value-valueA) * 10000);
   
   
      sprintf(result,
