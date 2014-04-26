@@ -37,11 +37,7 @@ int reportValue(char importCode[], time_t t, float value) {
   char contentSizeString[50];
   char* content = createJSONString(importCode, timeStampString, value);
   
-  Serial.println(content);
-  
   sprintf(contentSizeString, "%i", strlen(content));
-  
-  Serial.println(contentSizeString);
   
   uint32_t ip = 0;
   
@@ -49,7 +45,7 @@ int reportValue(char importCode[], time_t t, float value) {
   ip = cc3000->IP2U32(HARD_CODED_IP);
   
   // Try looking up the website's IP address
-  Serial.print(WEBSITE); Serial.print(F(" -> "));
+  // Serial.print(WEBSITE); Serial.print(F(" -> "));
   while (ip == 0) {
     if (! cc3000->getHostByName(WEBSITE, &ip)) {
       Serial.println(F("Couldn't resolve!"));
@@ -58,7 +54,7 @@ int reportValue(char importCode[], time_t t, float value) {
     return 1;
   }
 
-  cc3000->printIPdotsRev(ip);
+  //cc3000->printIPdotsRev(ip);
   Serial.println();
   
   /* Try connecting to the website.
@@ -87,19 +83,16 @@ int reportValue(char importCode[], time_t t, float value) {
   
   free(content);
 
-  Serial.println(F("-------------------------------------"));
-  
   /* Read data until either the connection is closed, or the idle timeout is reached. */ 
   unsigned long lastRead = millis();
   while (www.connected() && (millis() - lastRead < IDLE_TIMEOUT_MS)) {
     while (www.available()) {
       char c = www.read();
-      Serial.print(c);
+      //Serial.print(c);
       lastRead = millis();
     }
   }
   www.close();
-  Serial.println(F("-------------------------------------"));
   
   /* You need to make sure to clean up after yourself or the CC3000 can freak out */
   /* the next time your try to connect ... */
