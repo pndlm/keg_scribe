@@ -22,9 +22,7 @@ int reportValue(char importCode[], time_t t, float value) {
   Adafruit_CC3000* cc3000 = getCC3000();
     
   char timeStampString[50];
-  sprintTimeStamp(timeStampString, t);  
-  
-  Serial.println(timeStampString);
+  sprintTimeStamp(timeStampString, t);
   
   char contentSizeString[50];
   char* content = createJSONString(importCode, timeStampString, value);
@@ -43,9 +41,9 @@ int reportValue(char importCode[], time_t t, float value) {
   while (ip == 0) {
     if (! cc3000->getHostByName(WEBSITE, &ip)) {
       Serial.println(F("Couldn't resolve!"));
+      free(content);
+      return 1;
     }
-    free(content);
-    return 1;
   }
 
   //cc3000->printIPdotsRev(ip);
