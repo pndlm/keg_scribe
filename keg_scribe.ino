@@ -39,9 +39,9 @@ All text above must be included in any redistribution
 #define TAP2_IMPORT_CODE "KegScribeTap2"
 
 // number of milliseconds between reads
-#define LOOP_INTERVAL 100
+#define LOOP_INTERVAL 1000
 // number of milliseconds between reports
-#define REPORT_INTERVAL (1000UL*60UL*5UL)
+#define REPORT_INTERVAL (1000UL*60UL*1UL)
 // number of seconds between calls to the NTP server
 #define NTP_INTERVAL (60*60*24)
 
@@ -85,7 +85,8 @@ void useInterrupt(boolean v) {
 }
 
 void setup() {
-   Serial.begin(19200);
+  Serial.begin(115200);
+  
    Serial.print("Flow sensor test!");
    //lcd.begin(16, 2);
    
@@ -104,14 +105,12 @@ void setup() {
 unsigned long millisSinceLastReport = -1*REPORT_INTERVAL;
 
 void loop()                     // run over and over again
-{ 
+{
   
   if (timeStatus() == timeNotSet) {
-    Serial.println("Time has not yet been set.");
-    delay(5000);
-    return;
+    Serial.println("Warning: Time has not yet been set.");
   }
-  
+    
   float temperatureF = readTemperatureF(TEMPERATURE_ANALOG_PIN);
   float tap1L = readTapLiters();
   
@@ -120,20 +119,24 @@ void loop()                     // run over and over again
     time_t currentTime = now();
     //char timeString[50];
     //sprintTimeStamp(timeString, currentTime);
-  
-    Serial.print(F("Time: "));
-    //Serial.println(timeString);
     
     Serial.print(temperatureF); Serial.println(" degrees F");
     Serial.print(tap1L); Serial.println(" liters"); 
     
     // Report values to Hakase Server
-    reportValue(TEMPERATURE_IMPORT_CODE, currentTime, temperatureF);
-    reportValue(TAP1_IMPORT_CODE, currentTime, tap1L);
-    reportValue(TAP2_IMPORT_CODE, currentTime, 0);
     
-    // reset the interval and pulse counts
-    pulses = 0;
+    // Report Temperature
+    reportValue(TEMPERATURE_IMPORT_CODE, currentTime, temperatureF);
+    
+    // Report Tap 1
+    if(!reportValue(TAP1_IMPORT_CODE, currentTime, tap1L)) {
+      // reset the pulse counts after a successful report
+      pulses = 0;
+    }
+    
+    // Report Tap 2
+    // reportValue(TAP2_IMPORT_CODE, currentTime, 0);
+    
     millisSinceLastReport = millis();
   }
  

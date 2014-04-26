@@ -10,8 +10,7 @@ Adafruit_CC3000 cc3000 = Adafruit_CC3000(ADAFRUIT_CC3000_CS, ADAFRUIT_CC3000_IRQ
                                          SPI_CLOCK_DIVIDER); // you can change this clock speed
 
 void ConnectWifi() {
-
-  Serial.begin(115200);
+  
   Serial.println(F("Hello, KegScribe!\n")); 
 
   Serial.print("Free RAM: "); Serial.println(getFreeRam(), DEC);
