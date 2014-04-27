@@ -78,3 +78,25 @@ Adafruit_CC3000* getCC3000() {
   return &cc3000;
 }
 
+uint32_t getWebServerIP(Adafruit_CC3000* cc3000) {
+  uint32_t ip = 0;
+    
+  if (USE_HARD_CODED_IP) {
+    ip = cc3000->IP2U32(HARD_CODED_IP);
+  } else 
+  
+  // Try looking up the website's IP address
+  if (ip == 0) {
+    Serial.print(WEBSITE); Serial.print(F(" -> "));
+    if (! cc3000->getHostByName(WEBSITE, &ip)) {
+      Serial.println(F("Couldn't resolve!"));
+      return 0;
+    }
+  }
+  
+  cc3000->printIPdotsRev(ip);
+  Serial.println();
+  
+  return ip;
+}
+

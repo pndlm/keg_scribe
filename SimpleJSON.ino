@@ -1,4 +1,3 @@
-
 char* createJSONString(char importCode[], char utcTimeStamp[], float value) {
   char* result = new char[strlen(importCode) + strlen(utcTimeStamp) + 100];
   
@@ -20,6 +19,12 @@ char* createJSONString(char importCode[], char utcTimeStamp[], float value) {
 int reportValue(char importCode[], time_t t, float value) {
   
   Adafruit_CC3000* cc3000 = getCC3000();
+  
+  uint32_t ip = getWebServerIP(cc3000);
+  
+  if (ip == 0) {
+    return 1;
+  }
     
   char timeStampString[50];
   sprintTimeStamp(timeStampString, t);
@@ -29,33 +34,14 @@ int reportValue(char importCode[], time_t t, float value) {
   
   sprintf(contentSizeString, "%i", strlen(content));
   
-  uint32_t ip = 0;
-  
-  // hard coded for now. :(
-  if (USE_HARD_CODED_IP) {
-    ip = cc3000->IP2U32(HARD_CODED_IP);
-  }
-  
-  // Try looking up the website's IP address
-  // Serial.print(WEBSITE); Serial.print(F(" -> "));
-  while (ip == 0) {
-    if (! cc3000->getHostByName(WEBSITE, &ip)) {
-      Serial.println(F("Couldn't resolve!"));
-      free(content);
-      return 1;
-    }
-  }
 
-  //cc3000->printIPdotsRev(ip);
-  Serial.println();
-  
   /* Try connecting to the website.
      Note: HTTP/1.1 protocol is used to keep the server from closing the connection before all data is read.
   */
   Adafruit_CC3000_Client www = cc3000->connectTCP(ip, 80);
   if (www.connected()) {
     www.fastrprint(F("POST "));
-    www.fastrprint(WEBPAGE);
+    www.fastrprint(JSON_WEBPAGE);
     www.fastrprint(F(" HTTP/1.1\r\n"));
     www.fastrprint(F("Accept: */*\r\n"));
     www.fastrprint(F("Cache-Control: no-cache\r\n"));
@@ -80,7 +66,7 @@ int reportValue(char importCode[], time_t t, float value) {
   while (www.connected() && (millis() - lastRead < IDLE_TIMEOUT_MS)) {
     while (www.available()) {
       char c = www.read();
-      //Serial.print(c);
+      Serial.print(c);
       lastRead = millis();
     }
   }

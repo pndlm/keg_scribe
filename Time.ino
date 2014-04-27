@@ -44,13 +44,12 @@ time_t getNtpTime() {
   return sntpTime.seconds - NTP_TO_UNIX;
 }
 
-int sprintTimeStamp(char* s, time_t t) {
-  String boo = String(t);
-  boo.toCharArray(s, 50);
-  return boo.length();
+int sprintTimeStamp(char* buffer, time_t t) {
+  return sprintf(buffer, "%ul", t);
 }
 
-int sprintTime(char* s, time_t t) {
-  return 0;
-  //return sprintf(s, "%02i-%02i-%02i %02i:%02i:%02i", year(t), month(t), day(t), hour(t), minute(t), second(t));
+// provide a string buffer of at least 20 characters
+// the buffer will be filled like: 2012-03-29T17:00:00
+int sprintTime(char buffer[], time_t t) {
+  return sprintf(buffer, "%04i-%02i-%02iT%02i:%02i:%02i", year(t), month(t), day(t), hour(t), minute(t), second(t));
 }

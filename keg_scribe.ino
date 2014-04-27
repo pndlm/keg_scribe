@@ -1,9 +1,7 @@
 #include <Adafruit_CC3000.h>
-#include <Adafruit_CC3000_Server.h>
 #include <Time.h> 
-#include <ccspi.h>
+#include <SD.h>
 #include <SPI.h>
-#include <string.h>
 #include <math.h>
 #include "utility/debug.h"
 #include "utility/sntp.h"
@@ -30,6 +28,12 @@ All text above must be included in any redistribution
 //#include "LiquidCrystal.h"
 //LiquidCrystal lcd(7, 8, 9, 10, 11, 12);
 
+// change this to match your SD shield or module;
+//     Arduino Ethernet shield: pin 4
+//     Adafruit SD shields and modules: pin 10
+//     Sparkfun SD shield: pin 8
+#define CHIP_SELECT 4
+
 // which pin to use for reading the sensor? can use any pin!
 #define TEMPERATURE1_ANALOG_PIN 0
 #define TEMPERATURE2_ANALOG_PIN 1
@@ -40,10 +44,12 @@ All text above must be included in any redistribution
 #define TAP1_IMPORT_CODE "KegScribeTap1"
 #define TAP2_IMPORT_CODE "KegScribeTap2"
 
-// number of milliseconds between reads
-#define LOOP_INTERVAL 1000
+// number of milliseconds between recording values
+#define LOOP_INTERVAL (1000)
+// number of milliseconds between recording to SD card
+#define RECORD_INTERVAL (1000UL*10UL*1UL)
 // number of milliseconds between reports
-#define REPORT_INTERVAL (1000UL*60UL*1UL)
+#define REPORT_INTERVAL (1000UL*60UL*5UL)
 // number of seconds between calls to the NTP server
 #define NTP_INTERVAL (60*60*24)
 
@@ -92,6 +98,8 @@ void setup() {
    Serial.print("Flow sensor test!");
    //lcd.begin(16, 2);
    
+   initSD();
+   
    ConnectWifi();
    
    pinMode(FLOWSENSOR_DIGITAL_PIN, INPUT);
@@ -105,6 +113,7 @@ void setup() {
 
 // start at -1*REPORT_INTERVAL so we always report at startup
 unsigned long millisSinceLastReport = -1*REPORT_INTERVAL;
+unsigned long millisSinceLastRecord = -1*RECORD_INTERVAL;
 
 void loop()                     // run over and over again
 {
@@ -117,12 +126,10 @@ void loop()                     // run over and over again
   float temperature2 = readTemperatureF(TEMPERATURE2_ANALOG_PIN);
   float tap1L = readTapLiters();
   
-  if (millis() > (millisSinceLastReport + REPORT_INTERVAL)) {
+  time_t currentTime = now();
+  
+  if (millis() > (millisSinceLastRecord + RECORD_INTERVAL)) {
 
-    time_t currentTime = now();
-    //char timeString[50];
-    //sprintTimeStamp(timeString, currentTime);
-    
     Serial.print(temperature1); Serial.println(" degrees F (Ambient)");
     Serial.print(temperature2); Serial.println(" degrees F (Fridge)");
     Serial.print(tap1L); Serial.println(" liters"); 
@@ -130,18 +137,21 @@ void loop()                     // run over and over again
     // Report values to Hakase Server
     
     // Report Temperature
-    reportValue(TEMPERATURE1_IMPORT_CODE, currentTime, temperature1);
-    reportValue(TEMPERATURE2_IMPORT_CODE, currentTime, temperature2);
+    recordValue(TEMPERATURE1_IMPORT_CODE, currentTime, temperature1);
+    recordValue(TEMPERATURE2_IMPORT_CODE, currentTime, temperature2);
     
     // Report Tap 1
-    if(!reportValue(TAP1_IMPORT_CODE, currentTime, tap1L)) {
+    if(!recordValue(TAP1_IMPORT_CODE, currentTime, tap1L)) {
       // reset the pulse counts after a successful report
       pulses = 0;
     }
     
-    // Report Tap 2
-    // reportValue(TAP2_IMPORT_CODE, currentTime, 0);
-    
+    millisSinceLastRecord = millis();
+  }
+  
+  if (millis() > (millisSinceLastReport + REPORT_INTERVAL)) {
+    Serial.print(tap1L); Serial.println("Sending data..."); 
+    reportFiles();
     millisSinceLastReport = millis();
   }
  
@@ -183,17 +193,16 @@ float readTapLiters() {
 }
 
 float readTemperatureF(int sensorPin) {
- 
- int reading = analogRead(sensorPin);  
- // converting that reading to voltage, for 3.3v arduino use 3.3
- float voltage = reading * 5.0;
- voltage /= 1024.0; 
-
- // now print out the temperature
- float temperatureC = (voltage - 0.5) * 100 ;  //converting from 10 mv per degree wit 500 mV offset
- 
- // now convert to Fahrenheit
- float temperatureF = (temperatureC * 9.0 / 5.0) + 32.0;
- 
- return temperatureF;
+  int reading = analogRead(sensorPin);  
+  // converting that reading to voltage, for 3.3v arduino use 3.3
+  float voltage = reading * 5.0;
+  voltage /= 1024.0; 
+  
+  // now print out the temperature
+  float temperatureC = (voltage - 0.5) * 100 ;  //converting from 10 mv per degree wit 500 mV offset
+  
+  // now convert to Fahrenheit
+  float temperatureF = (temperatureC * 9.0 / 5.0) + 32.0;
+  
+  return temperatureF;
 }

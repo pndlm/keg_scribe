@@ -21,10 +21,17 @@ to the repository.
 #define WEBSITE      "my.hakase.server.com"
 
 // Use this path to report data on the Hakase server
-#define WEBPAGE      "/import/simpleJSON"
+#define CSV_WEBPAGE      "/import/simpleCSV"
+#define JSON_WEBPAGE      "/import/simpleJSON"
 
 #define IDLE_TIMEOUT_MS  3000      // Amount of time to wait (in milliseconds) with no data 
                                    // received before closing the connection.  If you know the server
                                    // you're accessing is quick to respond, you can reduce this value.
+                                   
+// change this to match your SD shield or module;
+//     Arduino Ethernet shield: pin 4
+//     Adafruit SD shields and modules: pin 10
+//     Sparkfun SD shield: pin 8
+const int chipSelect = 4;                                   
 
 */
