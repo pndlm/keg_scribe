@@ -1,10 +1,13 @@
+#define DHT22_NO_FLOAT
+
 #include <Adafruit_CC3000.h>
-#include <Time.h> 
-#include <SD.h>
-#include <SPI.h>
-#include <math.h>
-#include "utility/debug.h"
+#include <Time.h>
+//#include <Ethernet.h>
+//#include <EthernetUdp.h>
 #include "utility/sntp.h"
+#include <SPI.h>
+#include <Fat16.h>
+#include <Fat16util.h> // use functions to print strings from flash memory
 
 /**********************************************************
 This is example code for using the Adafruit liquid flow meters. 
@@ -33,6 +36,9 @@ All text above must be included in any redistribution
 //     Adafruit SD shields and modules: pin 10
 //     Sparkfun SD shield: pin 8
 #define CHIP_SELECT 4
+
+#define OK_MSG     (" ok.")
+#define FAIL_MSG   (" fail.")
 
 // which pin to use for reading the sensor? can use any pin!
 #define TEMPERATURE1_ANALOG_PIN 0
@@ -95,27 +101,28 @@ void useInterrupt(boolean v) {
 void setup() {
   Serial.begin(115200);
   
-   initSD();
-   initWifi();
-   
-   pinMode(FLOWSENSOR_DIGITAL_PIN, INPUT);
-   digitalWrite(FLOWSENSOR_DIGITAL_PIN, HIGH);
-   lastflowpinstate = digitalRead(FLOWSENSOR_DIGITAL_PIN);
-   useInterrupt(true);
-   
-   setSyncProvider(getNtpTime);
-   setSyncInterval(NTP_INTERVAL);
+  Serial.print(F("KegScribe 1.0\r\n")); 
+  //Serial.print(F("Free RAM ")); Serial.print(getFreeRam(), DEC);
+  
+  initSD();
+  initWifi();
+  
+  pinMode(FLOWSENSOR_DIGITAL_PIN, INPUT);
+  digitalWrite(FLOWSENSOR_DIGITAL_PIN, HIGH);
+  lastflowpinstate = 0; digitalRead(FLOWSENSOR_DIGITAL_PIN);
+  useInterrupt(true);
+  
+  setSyncProvider(getNtpTime);
+  setSyncInterval(NTP_INTERVAL);
 }
 
 // start at -1*REPORT_INTERVAL so we always report at startup
 unsigned long millisSinceLastReport = -1*REPORT_INTERVAL;
-unsigned long millisSinceLastRecord = -1*RECORD_INTERVAL;
 
-void loop()                     // run over and over again
-{
+void loop() {
   
   if (timeStatus() == timeNotSet) {
-    Serial.println("Warning: Time has not yet been set.");
+    Serial.print("time not set.\r\n");
   }
     
   float temperature1 = readTemperatureF(TEMPERATURE1_ANALOG_PIN);
@@ -124,34 +131,29 @@ void loop()                     // run over and over again
   
   time_t currentTime = now();
   
-  if (millis() > (millisSinceLastRecord + RECORD_INTERVAL)) {
-
-    Serial.print(temperature1); Serial.println(F(" degrees F (Ambient)"));
-    Serial.print(temperature2); Serial.println(F(" degrees F (Fridge)"));
-    Serial.print(tap1L); Serial.println(F(" liters")); 
-    
-    // Report values to Hakase Server
-    
-    // Report Temperature
-    recordValue(TEMPERATURE1_IMPORT_CODE, currentTime, temperature1);
-    recordValue(TEMPERATURE2_IMPORT_CODE, currentTime, temperature2);
-    
-    // Report Tap 1
-    if(!recordValue(TAP1_IMPORT_CODE, currentTime, tap1L)) {
-      // reset the pulse counts after a successful report
-      pulses = 0;
-    }
-    
-    millisSinceLastRecord = millis();
+  Serial.print(temperature1); Serial.print(F("°F (Ambient)\r\n"));
+  Serial.print(temperature2); Serial.print(F("°F (Fridge)\r\n"));
+  Serial.print(tap1L); Serial.print(F("l\r\n")); 
+  
+  // Record Temperature
+  recordValue(TEMPERATURE1_IMPORT_CODE, &currentTime, temperature1);
+  recordValue(TEMPERATURE2_IMPORT_CODE, &currentTime, temperature2);
+  
+  // Report Tap 1
+  if(!recordValue(TAP1_IMPORT_CODE, &currentTime, tap1L)) {
+    // reset the pulse counts after a successful report
+    pulses = 0;
   }
   
   if (millis() > (millisSinceLastReport + REPORT_INTERVAL)) {
-    Serial.print(tap1L); Serial.println("Sending data..."); 
+    // Report values to Hakase Server
+  
+    Serial.print(tap1L); Serial.print("Sending data...\r\n");
     reportFiles();
     millisSinceLastReport = millis();
   }
  
-  delay(LOOP_INTERVAL);
+  delay(RECORD_INTERVAL);
 }
 
 float readTapLiters() {
@@ -201,4 +203,17 @@ float readTemperatureF(int sensorPin) {
   float temperatureF = (temperatureC * 9.0 / 5.0) + 32.0;
   
   return temperatureF;
+}
+
+/*
+ * Write an unsigned number to file
+ */
+int cbPrintInt(char* buf, int n) {
+  int i = 0;
+  do {
+    i++;
+    buf[sizeof(buf) - i] = n%10 + '0';
+    n /= 10;
+  } while (n);
+  return i;
 }

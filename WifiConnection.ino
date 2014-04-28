@@ -11,31 +11,24 @@ Adafruit_CC3000 cc3000 = Adafruit_CC3000(ADAFRUIT_CC3000_CS, ADAFRUIT_CC3000_IRQ
 
 void initWifi() {
   
-  Serial.println(F("Hello, KegScribe!\n")); 
-
-  Serial.print("Free RAM: "); Serial.println(getFreeRam(), DEC);
-  
   /* Initialise the module */
-  Serial.println(F("\nInitializing..."));
+  Serial.print(F("wifi"));
   if (!cc3000.begin())
   {
-    Serial.println(F("Couldn't begin()! Check your wiring?"));
+    Serial.print(FAIL_MSG);
     while(1);
   }
+  Serial.print(OK_MSG);
   
-  // Optional SSID scan
-  // listSSIDResults();
-  
-  Serial.print(F("\nAttempting to connect to SSID: ")); Serial.println(WLAN_SSID);
+  Serial.print(F("ssid ")); Serial.print(WLAN_SSID);
   if (!cc3000.connectToAP(WLAN_SSID, WLAN_PASS, WLAN_SECURITY)) {
-    Serial.println(F("Failed!"));
+    Serial.print(FAIL_MSG);
     while(1);
   }
-   
-  Serial.println(F("Connected!"));
+  Serial.print(OK_MSG);
   
   /* Wait for DHCP to complete */
-  Serial.println(F("Request DHCP"));
+  Serial.print(F("dhcp"));
   while (!cc3000.checkDHCP())
   {
     delay(100); // ToDo: Insert a DHCP timeout!
@@ -59,17 +52,19 @@ bool displayConnectionDetails(void)
   
   if(!cc3000.getIPAddress(&ipAddress, &netmask, &gateway, &dhcpserv, &dnsserv))
   {
-    Serial.println(F("Unable to retrieve the IP Address!\r\n"));
+    Serial.print(FAIL_MSG);
     return false;
   }
   else
   {
-    Serial.print(F("\nIP Addr: ")); cc3000.printIPdotsRev(ipAddress);
-    Serial.print(F("\nNetmask: ")); cc3000.printIPdotsRev(netmask);
-    Serial.print(F("\nGateway: ")); cc3000.printIPdotsRev(gateway);
-    Serial.print(F("\nDHCPsrv: ")); cc3000.printIPdotsRev(dhcpserv);
-    Serial.print(F("\nDNSserv: ")); cc3000.printIPdotsRev(dnsserv);
-    Serial.println();
+    /*
+    Serial.print(F("\nip addr  ")); cc3000.printIPdotsRev(ipAddress);
+    Serial.print(F("\nnetmask  ")); cc3000.printIPdotsRev(netmask);
+    Serial.print(F("\ngateway  ")); cc3000.printIPdotsRev(gateway);
+    Serial.print(F("\ndhcp srv ")); cc3000.printIPdotsRev(dhcpserv);
+    Serial.print(F("\ndns srv  ")); cc3000.printIPdotsRev(dnsserv);
+    */
+    Serial.print(OK_MSG);
     return true;
   }
 }
@@ -80,22 +75,24 @@ Adafruit_CC3000* getCC3000() {
 
 uint32_t getWebServerIP(Adafruit_CC3000* cc3000) {
   uint32_t ip = 0;
-    
-  if (USE_HARD_CODED_IP) {
+  
+  #if USE_HARD_CODED_IP
     ip = cc3000->IP2U32(HARD_CODED_IP);
-  } else 
-  
-  // Try looking up the website's IP address
-  if (ip == 0) {
-    Serial.print(WEBSITE); Serial.print(F(" -> "));
-    if (! cc3000->getHostByName(WEBSITE, &ip)) {
-      Serial.println(F("Couldn't resolve!"));
-      return 0;
+  #else
+    // Try looking up the website's IP address
+    if (ip == 0) {
+      Serial.print(WEBSITE); Serial.print(F(" -> "));
+      if (! cc3000->getHostByName(WEBSITE, &ip)) {
+        Serial.print(F("Couldn't resolve!\r\n"));
+        return 0;
+      }
     }
-  }
+  #endif
   
+  /*
   cc3000->printIPdotsRev(ip);
-  Serial.println();
+  Serial.print();
+  */
   
   return ip;
 }
