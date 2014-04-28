@@ -95,12 +95,8 @@ void useInterrupt(boolean v) {
 void setup() {
   Serial.begin(115200);
   
-   Serial.print("Flow sensor test!");
-   //lcd.begin(16, 2);
-   
    initSD();
-   
-   ConnectWifi();
+   initWifi();
    
    pinMode(FLOWSENSOR_DIGITAL_PIN, INPUT);
    digitalWrite(FLOWSENSOR_DIGITAL_PIN, HIGH);
@@ -130,9 +126,9 @@ void loop()                     // run over and over again
   
   if (millis() > (millisSinceLastRecord + RECORD_INTERVAL)) {
 
-    Serial.print(temperature1); Serial.println(" degrees F (Ambient)");
-    Serial.print(temperature2); Serial.println(" degrees F (Fridge)");
-    Serial.print(tap1L); Serial.println(" liters"); 
+    Serial.print(temperature1); Serial.println(F(" degrees F (Ambient)"));
+    Serial.print(temperature2); Serial.println(F(" degrees F (Fridge)"));
+    Serial.print(tap1L); Serial.println(F(" liters")); 
     
     // Report values to Hakase Server
     

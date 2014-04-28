@@ -2,15 +2,14 @@
 #define FORM_BOUNDARY "KegScribeCSVFile"
 
 void initSD() {
- 
   pinMode(SS, OUTPUT);
-   
+  Serial.print("init ");
+  
   if (!SD.begin(CHIP_SELECT)) {
-    Serial.println("initialization failed!");
+    Serial.println("fail!");
     return;
   }
-  Serial.println("initialization done."); 
-  
+  Serial.println("ok."); 
 }
 
 // provide a string buffer of at least 16 characters
@@ -34,7 +33,7 @@ int recordValue(char importCode[], time_t t, float value) {
   sprintFloat(valueString, value);
   
   // if the file didn't open, print an error:
-  Serial.print("opening file: ");
+  Serial.print(F("open file "));
   Serial.println(filename);
   
   File file = SD.open(filename, FILE_WRITE);
@@ -42,12 +41,12 @@ int recordValue(char importCode[], time_t t, float value) {
   if (file) {
     
     if(file.size() == 0) {
-      Serial.println("adding header to new file.");
-      file.print("ImportCode,Timestamp,Value\n"); 
+      Serial.println(F("new file"));
+      file.print(F("ImportCode,Timestamp,Value\n")); 
     }
     
-    file.print(importCode); file.print(',');
-    file.print(timestamp); file.print(',');
+    file.print(importCode); file.print(",");
+    file.print(timestamp); file.print(",");
     file.print(valueString); file.print("\n");
     
     // close the file:
@@ -132,7 +131,6 @@ void reportFiles() {
     File file = dir.openNextFile();
     if (!file) {
       // no more files
-      //Serial.println("**nomorefiles**");
       break;
     }
    
