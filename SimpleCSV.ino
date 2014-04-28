@@ -26,10 +26,7 @@ void initSD() {
 // provide a string buffer of at least 20 characters
 // the buffer will be filled like: ####.####
 int sprintFilename(char* buffer, time_t* t) {
-  short offset = 0;
-  offset += cbPrintInt(&buffer[offset], year(*t));
-  offset += cbPrintInt(&buffer[offset], month(*t));
-  offset += cbPrintInt(&buffer[offset], day(*t));
+  short offset = sprintTime(buffer, t, false);
   buffer[offset++] = '.';
   buffer[offset++] = 'c';
   buffer[offset++] = 's';
@@ -54,7 +51,7 @@ int recordValue(char importCode[], time_t* t, float value) {
   sprintFilename(filename, t);
   
   char timestamp[20];
-  sprintTime(timestamp, t);
+  sprintTime(timestamp, t, true);
   
   char valueString[16];
   sprintFloat(valueString, value);
@@ -104,38 +101,22 @@ int reportFile(Fat16* file) {
   Adafruit_CC3000_Client www = cc3000->connectTCP(ip, 80);
   
   if (www.connected()) {
-    www.fastrprint(F("POST "));
-    www.fastrprint(CSV_WEBPAGE);
-    www.fastrprint(F(" HTTP/1.1\r\n"));
-    www.fastrprint(F("Accept: */*\r\n"));
-    //www.fastrprint(F("Cache-Control: no-cache\r\n"));
-    www.fastrprint(F("Authorization: Basic a2Vnc2NyaWJlOnRlc3Q=\r\n"));
-    www.fastrprint(F("Content-Length: "));
-    www.print(file->fileSize());
+    www.fastrprint(F("POST ")); www.fastrprint(CSV_WEBPAGE); www.fastrprint(F(" HTTP/1.1\r\n"));
+    www.fastrprint(F("Host: ")); www.fastrprint(CSV_WEBPAGE); www.fastrprint(F("\r\n"));
     www.fastrprint(F("\r\nContent-Type: multipart/form-data; boundary=")); www.fastrprint(FORM_BOUNDARY);
     //www.fastrprint(F("\r\nUser-Agent: KegScribe\r\n"));
-    www.fastrprint(F("Host: ")); www.fastrprint(CSV_WEBPAGE); www.fastrprint(F("\r\n"));
-    www.print("\r\n");
-    www.fastrprint("--"); www.fastrprint(FORM_BOUNDARY);
-    www.fastrprint(F("Content-Disposition: form-data; name=\"f\"; filename=\""));
-    www.fastrprint(F("filename.csv"));
-    www.fastrprint(F("\"\r\n"));
-    www.fastrprint(F("Content-Type: application/octet-stream\r\n"));
-    www.fastrprint(F("Content-Transfer-Encoding: binary\r\n"));
-    www.print("\r\n");
+    www.fastrprint(F("Content-Length: ")); //www.print(file->fileSize());
+    www.fastrprint(F("\r\nAuthorization: Basic a2Vnc2NyaWJlOnRlc3Q=\r\n"));
+    www.fastrprint("\r\n--"); www.fastrprint(FORM_BOUNDARY);
+    www.fastrprint(F("Content-Disposition: form-data; name=\"f\"; filename=\"filename.csv\"\r\n"));
+    www.fastrprint(F("Content-Type: text/csv\r\n\r\n"));
     
-    /*
     int16_t n;
-    uint8_t buf[7];// nothing special about 7, just a lucky number.
-    while ((n = file->read(buf, sizeof(buf))) > 0) {
-      for (uint8_t i = 0; i < n; i++) {
-        www.print(buf[i]);
-      }
+    uint8_t buf[7] = {0,0,0,0,0,0,0};// nothing special about 7, just a lucky number.
+    // read sizeof(buf)-1 bytes into buf
+    while ((n = file->read(buf, sizeof(buf)-1)) > 0) {
+      www.fastrprint((char*)buf);
     }
-    */
-    
-    int16_t c;
-    while ((c = file->read()) > 0) www.print((char)c);
     
     www.fastrprint("--"); www.fastrprint(FORM_BOUNDARY); www.fastrprint("--");
     

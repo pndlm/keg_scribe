@@ -118,14 +118,16 @@ int sprintTimeStamp(char* buffer, time_t t) {
 
 // provide a string buffer of at least 20 characters
 // the buffer will be filled like: 2012-03-29T17:00:00
-int sprintTime(char* buffer, time_t* t) {
+int sprintTime(char* buffer, time_t* t, bool withMinutes) {
   short offset = 0;
   offset += cbPrintInt(&buffer[offset], year(*t));
   offset += cbPrintInt(&buffer[offset], month(*t));
   offset += cbPrintInt(&buffer[offset], day(*t));
-  buffer[offset++] = 'T';
-  offset += cbPrintInt(&buffer[offset], hour(*t));
-  offset += cbPrintInt(&buffer[offset], minute(*t));
-  offset += cbPrintInt(&buffer[offset], second(*t));
+  if (withMinutes) { 
+    buffer[offset++] = 'T';
+    offset += cbPrintInt(&buffer[offset], hour(*t));
+    offset += cbPrintInt(&buffer[offset], minute(*t));
+    offset += cbPrintInt(&buffer[offset], second(*t));
+  }
   return offset;
 }

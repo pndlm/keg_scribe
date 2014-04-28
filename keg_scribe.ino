@@ -1,9 +1,5 @@
-#define DHT22_NO_FLOAT
-
 #include <Adafruit_CC3000.h>
 #include <Time.h>
-//#include <Ethernet.h>
-//#include <EthernetUdp.h>
 #include "utility/sntp.h"
 #include <SPI.h>
 #include <Fat16.h>
