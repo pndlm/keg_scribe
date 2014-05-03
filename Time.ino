@@ -10,11 +10,11 @@
 //	4 - Local UTC offset in minutes for Daylight Savings Time (US Eastern DST is UTC - 4:00
 //	5 - Enable Daylight Savings Time adjustment (not implemented yet)
 //
-sntp mysntp = sntp(NULL, "time.nist.gov", (short)(0 * 60), (short)(0 * 60), false);
+//sntp mysntp = sntp(NULL, "time.nist.gov", (short)(0 * 60), (short)(0 * 60), false);
 
 // Type SNTP_Timestamp is 64-bit NTP time. High-order 32-bits is seconds since 1/1/1900
 //   Low order 32-bits is fractional seconds
-SNTP_Timestamp_t sntpTime;
+//SNTP_Timestamp_t sntpTime;
 
 // Type NetTime_t contains NTP time broken out to human-oriented values:
 //	uint16_t millis; ///< Milliseconds after the second (0..999)
@@ -27,22 +27,75 @@ SNTP_Timestamp_t sntpTime;
 //	uint8_t	 wday;	 ///< Days since Sunday (0..6)
 //	uint8_t	 yday;   ///< Days since January 1 (0..365)
 //	bool	 isdst;  ///< Daylight savings time flag, currently not supported	
-NetTime_t timeExtract;
+//NetTime_t timeExtract;
 
 
-time_t getNtpTime() {
+const unsigned long
+  connectTimeout  = 15L * 1000L, // Max time to wait for server connection
+  responseTimeout = 15L * 1000L; // Max time to wait for data from server
   
-  mysntp.UpdateNTPTime();
-  
-  mysntp.NTPGetTime(&sntpTime, false);
+unsigned long
+  lastPolledTime  = 0L, // Last value retrieved from time server
+  sketchTime      = 0L; // CPU milliseconds since last server query
 
-//  Serial.println(F("time "));
-//  Serial.print(timeExtract.year); Serial.print(F("-")); Serial.print(timeExtract.mon); Serial.print(F("-")); Serial.print(timeExtract.mday); Serial.print(F(" "));
-//  Serial.print(timeExtract.hour); Serial.print(F(":")); Serial.print(timeExtract.min); Serial.print(F(":")); Serial.print(timeExtract.sec); Serial.print(F(".")); Serial.print(timeExtract.millis);
+// Minimalist time server query; adapted from Adafruit Gutenbird sketch,
+// which in turn has roots in Arduino UdpNTPClient tutorial.
+time_t getNtpTime(void) {
   
-  // seconds since 1900 - (seconds between 1900 and 1970)
-  return sntpTime.seconds - NTP_TO_UNIX;
+  Adafruit_CC3000_Client client;
+  Adafruit_CC3000* cc3000 = getCC3000();
+
+  uint8_t       buf[48];
+  unsigned long ip, startTime, t = 0L;
+
+  Serial.print(F("Locating time server..."));
+
+  // Hostname to IP lookup; use NTP pool (rotates through servers)
+  if(cc3000->getHostByName(NTP_SERVER, &ip)) {
+    static const char PROGMEM
+      timeReqA[] = { 227,  0,  6, 236 },
+      timeReqB[] = {  49, 78, 49,  52 };
+
+    Serial.println(F("\r\nAttempting connection..."));
+    cc3000->printIPdotsRev(ip);
+    
+    startTime = millis();
+    do {
+      client = cc3000->connectUDP(ip, 123);
+    } while((!client.connected()) &&
+            ((millis() - startTime) < connectTimeout));
+
+    if(client.connected()) {
+      Serial.print(F("connected!\r\nIssuing request..."));
+
+      // Assemble and issue request packet
+      memset(buf, 0, sizeof(buf));
+      memcpy_P( buf    , timeReqA, sizeof(timeReqA));
+      memcpy_P(&buf[12], timeReqB, sizeof(timeReqB));
+      client.write(buf, sizeof(buf));
+
+      Serial.print(F("\r\nAwaiting response..."));
+      memset(buf, 0, sizeof(buf));
+      startTime = millis();
+      while((!client.available()) &&
+            ((millis() - startTime) < responseTimeout));
+      if(client.available()) {
+        client.read(buf, sizeof(buf));
+        t = (((unsigned long)buf[40] << 24) |
+             ((unsigned long)buf[41] << 16) |
+             ((unsigned long)buf[42] <<  8) |
+              (unsigned long)buf[43]) - NTP_TO_UNIX;
+        Serial.print(F("OK\r\n"));
+      }
+      client.close();
+    }
+  }
+  if(!t) Serial.println(F("error"));
+  return t;
 }
+
+
+
 
 /*-------- NTP code ----------*/
 
@@ -111,23 +164,3 @@ void sendNTPpacket(IPAddress &address)
 */
 
 // ----- My code
-
-int sprintTimeStamp(char* buffer, time_t t) {
-  return cbPrintInt(buffer, t);
-}
-
-// provide a string buffer of at least 20 characters
-// the buffer will be filled like: 2012-03-29T17:00:00
-int sprintTime(char* buffer, time_t* t, bool withMinutes) {
-  short offset = 0;
-  offset += cbPrintInt(&buffer[offset], year(*t));
-  offset += cbPrintInt(&buffer[offset], month(*t));
-  offset += cbPrintInt(&buffer[offset], day(*t));
-  if (withMinutes) { 
-    buffer[offset++] = 'T';
-    offset += cbPrintInt(&buffer[offset], hour(*t));
-    offset += cbPrintInt(&buffer[offset], minute(*t));
-    offset += cbPrintInt(&buffer[offset], second(*t));
-  }
-  return offset;
-}

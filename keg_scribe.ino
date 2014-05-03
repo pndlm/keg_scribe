@@ -1,6 +1,6 @@
 #include <Adafruit_CC3000.h>
+#include <Adafruit_CC3000_Server.h>
 #include <Time.h>
-#include "utility/sntp.h"
 #include <SPI.h>
 #include <Fat16.h>
 #include <Fat16util.h> // use functions to print strings from flash memory
@@ -27,14 +27,8 @@ All text above must be included in any redistribution
 //#include "LiquidCrystal.h"
 //LiquidCrystal lcd(7, 8, 9, 10, 11, 12);
 
-// change this to match your SD shield or module;
-//     Arduino Ethernet shield: pin 4
-//     Adafruit SD shields and modules: pin 10
-//     Sparkfun SD shield: pin 8
-#define CHIP_SELECT 4
-
-#define OK_MSG     (" ok.")
-#define FAIL_MSG   (" fail.")
+#define OK_MSG     (" ok.\r\n")
+#define FAIL_MSG   (" fail.\r\n")
 
 // which pin to use for reading the sensor? can use any pin!
 #define TEMPERATURE1_ANALOG_PIN 0
@@ -100,8 +94,12 @@ void setup() {
   Serial.print(F("KegScribe 1.0\r\n")); 
   //Serial.print(F("Free RAM ")); Serial.print(getFreeRam(), DEC);
   
-  initSD();
+  //char buffer[200];
+  //cbPrintULong(buffer, 1234UL);
+  //Serial.print(buffer);
+  
   initWifi();
+  initSD();
   
   pinMode(FLOWSENSOR_DIGITAL_PIN, INPUT);
   digitalWrite(FLOWSENSOR_DIGITAL_PIN, HIGH);
@@ -199,17 +197,4 @@ float readTemperatureF(int sensorPin) {
   float temperatureF = (temperatureC * 9.0 / 5.0) + 32.0;
   
   return temperatureF;
-}
-
-/*
- * Write an unsigned number to file
- */
-int cbPrintInt(char* buf, int n) {
-  int i = 0;
-  do {
-    i++;
-    buf[sizeof(buf) - i] = n%10 + '0';
-    n /= 10;
-  } while (n);
-  return i;
 }

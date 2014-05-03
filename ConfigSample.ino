@@ -17,6 +17,12 @@ to the repository.
 #define USE_HARD_CODED_IP   true
 #define HARD_CODED_IP       172, 16, 25, 63
 
+// change this to match your SD shield or module;
+//     Arduino Ethernet shield: pin 4
+//     Adafruit SD shields and modules: pin 10
+//     Sparkfun SD shield: pin 8
+#define SD_CHIP_SELECT_PIN       4
+
 // When not using a hard coded IP, use this address:
 #define WEBSITE      "my.hakase.server.com"
 

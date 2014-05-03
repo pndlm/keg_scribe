@@ -4,11 +4,11 @@ Fat16 file;
 #define FORM_BOUNDARY "KegScribeCSVFile"
 
 void initSD() {
-  pinMode(SS, OUTPUT);
+  pinMode(SD_CHIP_SELECT_PIN, OUTPUT);
   
   // initialize the SD card
   Serial.print(F("sd"));
-  if (!card.init()) {
+  if (!card.init(0, SD_CHIP_SELECT_PIN)) {
     Serial.print(FAIL_MSG);
     return;
   }
@@ -23,38 +23,26 @@ void initSD() {
   Serial.print(OK_MSG);
 }
 
-// provide a string buffer of at least 20 characters
-// the buffer will be filled like: ####.####
-int sprintFilename(char* buffer, time_t* t) {
-  short offset = sprintTime(buffer, t, false);
-  buffer[offset++] = '.';
-  buffer[offset++] = 'c';
-  buffer[offset++] = 's';
-  buffer[offset++] = 'v';
-  return offset;
-}
 
-// provide a string buffer of at least 20 characters
-// the buffer will be filled like: ####.####
-int sprintFloat(char* buffer, float value) {
-  int valueA = floor(value);
-  int valueB = floor((value-valueA) * 10000);
-  short offset = cbPrintInt(buffer, valueA);
-  buffer[offset++] = '.';
-  offset += cbPrintInt(&buffer[offset], valueB);
-  return offset;
-}
 
 int recordValue(char importCode[], time_t* t, float value) {
+  
+  Serial.print(F("filename "));
   
   char filename[12];
   sprintFilename(filename, t);
   
+  Serial.print(filename); Serial.print("\r\ntimestamp ");
+  
   char timestamp[20];
   sprintTime(timestamp, t, true);
   
+  Serial.print(timestamp); Serial.print("\r\nvalue ");
+  
   char valueString[16];
   sprintFloat(valueString, value);
+  
+  Serial.print(valueString); Serial.print("\r\n");
   
   // if the file didn't open, print an error:
   Serial.print(F("open file "));
