@@ -1,9 +1,16 @@
 SdCard card;
 Fat16 file;
 
-#define FORM_BOUNDARY "--KegScribeCSVFile"
-#define FILE_HEADER "\r\nContent-Disposition: form-data; name=\"f\"; filename=\"filename.csv\"\r\nContent-Type: text/csv\r\n\r\n"
-const char SUCCESS_RESPONSE[] = "HTTP/1.1 200 OK";
+#define FORM_BOUNDARY_PREFIX "--"
+#define FORM_BOUNDARY_BASE "KegScribeCSVFile"
+#define FORM_BOUNDARY FORM_BOUNDARY_PREFIX FORM_BOUNDARY_BASE
+#define FORM_BOUNDARY_END FORM_BOUNDARY FORM_BOUNDARY_PREFIX "\r\n"
+#define FORM_BOUNDARY_START FORM_BOUNDARY "\r\n"
+
+#define CC3000_DELAY 100
+
+#define FILE_HEADER "Content-Disposition: form-data; name=\"file\"; filename=\"filename.csv\"\r\nContent-Type: text/csv\r\n\r\n"
+const char SUCCESS_RESPONSE[] = "HTTP/1.1 200 OK\r\n";
 
 void initSD() {
   pinMode(SD_CHIP_SELECT_PIN, OUTPUT);
@@ -67,6 +74,16 @@ int recordValue(char importCode[], time_t* t, float value) {
   return 0;
 }
 
+int safeprint(Adafruit_CC3000_Client* www, const __FlashStringHelper* string) {
+  delay(CC3000_DELAY);
+  return www->fastrprint(string);
+}
+
+int safeprint(Adafruit_CC3000_Client* www, char* string) {
+  delay(CC3000_DELAY);
+  return www->fastrprint(string);
+}
+
 int reportFile(Fat16* file) {
   Adafruit_CC3000* cc3000 = getCC3000();
   
@@ -81,42 +98,55 @@ int reportFile(Fat16* file) {
   */
   Serial.print(F("tcp connect"));
   Adafruit_CC3000_Client www = cc3000->connectTCP(ip, 80);
-  
-  uint32_t totalContentLength = ((strlen(FORM_BOUNDARY)+2)*2) + strlen(FILE_HEADER) + 2;
+
+  // calculate the content-length in bytes
+  uint32_t totalContentLength = strlen(FORM_BOUNDARY_START) + strlen(FILE_HEADER) + 2 + strlen(FORM_BOUNDARY_END);
+
   totalContentLength += file->fileSize();
-  
+
   if (www.connected()) {
-    www.fastrprint(F("POST ")); www.fastrprint(CSV_WEBPAGE); www.fastrprint(F(" HTTP/1.1"));
-    www.fastrprint(F("\r\nHost: ")); www.fastrprint(WEBSITE);
-    www.fastrprint(F("\r\nAuthorization: Basic a2Vnc2NyaWJlOnRlc3Q="));
-    www.fastrprint(F("\r\nUser-Agent: KegScribe"));
-    www.fastrprint(F("\r\nContent-Length: ")); www.print(totalContentLength);
-    www.fastrprint(F("\r\nContent-Type: multipart/form-data; boundary=")); www.fastrprint(FORM_BOUNDARY);
-    www.fastrprint("\r\n\r\n"); www.fastrprint(FORM_BOUNDARY);
-    www.fastrprint(F(FILE_HEADER));
+    safeprint(&www, F("POST ")); safeprint(&www, CSV_WEBPAGE); safeprint(&www, F(" HTTP/1.1"));
+    safeprint(&www, F("\r\nHost: ")); safeprint(&www, WEBSITE);
+    safeprint(&www, F("\r\nAuthorization: Basic a2Vnc2NyaWJlOnRlc3Q="));
+    safeprint(&www, F("\r\nUser-Agent: KegScribe"));
+    safeprint(&www, F("\r\nConnection: Close"));
+    safeprint(&www, F("\r\nContent-Length: ")); www.print(totalContentLength);
+    safeprint(&www, F("\r\nContent-Type: multipart/form-data; boundary=")); safeprint(&www, FORM_BOUNDARY_BASE "\r\n");
+    safeprint(&www, F("\r\n"));
     
-    int16_t n;
-    uint8_t buf[7] = {0,0,0,0,0,0,0};// nothing special about 7, just a lucky number.
-    // read sizeof(buf)-1 bytes into buf
-    while ((n = file->read(buf, sizeof(buf)-1)) > 0) {
-      www.fastrprint((char*)buf);
+    safeprint(&www, FORM_BOUNDARY_START);
+    safeprint(&www, F(FILE_HEADER));
+    
+    Serial.print(" header");
+    
+    int16_t c;
+    while ((c = file->read()) > 0) {
+      Serial.print(c);
+      www.write(&c, 1, 0);
+      delay(CC3000_DELAY);
     }
     
-    www.fastrprint(FORM_BOUNDARY); www.fastrprint("--");
+    safeprint(&www, F("\r\n"));
+    safeprint(&www, FORM_BOUNDARY_END);
     
+    Serial.print(" sent");
     
     // Read data until either the connection is closed, or the idle timeout is reached.
     byte i = 0;
     unsigned long lastRead = millis();
     while (www.connected() && (millis() - lastRead < IDLE_TIMEOUT_MS)) {
+      Serial.print("Reading response...\r\n");
+      delay(CC3000_DELAY);
       while (www.available() && (i < strlen(SUCCESS_RESPONSE))) {
         char c = www.read();
+        Serial.print(c);
         if ((i < strlen(SUCCESS_RESPONSE)) && c != SUCCESS_RESPONSE[i++]) {
           Serial.print(FAIL_MSG);
+          www.close();
           return 2;
         }
-        Serial.print(c);
         lastRead = millis();
+        delay(CC3000_DELAY);
       }
     }
     
