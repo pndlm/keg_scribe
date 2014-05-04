@@ -134,9 +134,10 @@ void reportFiles() {
     }
     
     Serial.print("read ");
-    Serial.print((char*)(dir.name));
+    cbPrintFilename(filename, dir);
+    Serial.print(filename);
 
-    file.open((char*)(dir.name), O_READ);
+    file.open(filename, O_READ);
     if (!file.isOpen()) {
       // no more files
       Serial.print(FAIL_MSG);
@@ -148,7 +149,7 @@ void reportFiles() {
     if(reportFile(&file) == 0) {
       // successfully sent the data
       // so we can remove this file
-      file.remove((char*)(dir.name));
+      file.remove(filename);
     }
     
     file.close();

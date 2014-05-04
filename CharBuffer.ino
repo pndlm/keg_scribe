@@ -82,3 +82,17 @@ int sprintFilename(char* buffer, time_t* t) {
   buffer[offset++] = 0;
   return offset;
 }
+
+// buf must be 13 character buffer
+int cbPrintFilename(char* buf, dir_t dir) {
+  byte offset = 0;
+  for(uint8_t i = 0; i < 11; i++){
+    if(dir.name[i] == ' ') continue;
+    if (i == 8) {
+        buf[offset++] = '.';
+    }
+    buf[offset++] = (char)(dir.name[i]);
+  }
+  buf[offset++] = 0;
+  return offset;
+}
