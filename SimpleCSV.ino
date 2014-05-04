@@ -1,7 +1,9 @@
 SdCard card;
 Fat16 file;
 
-#define FORM_BOUNDARY "KegScribeCSVFile"
+#define FORM_BOUNDARY "--KegScribeCSVFile"
+#define FILE_HEADER "\r\nContent-Disposition: form-data; name=\"f\"; filename=\"filename.csv\"\r\nContent-Type: text/csv\r\n\r\n"
+const char SUCCESS_RESPONSE[] = "HTTP/1.1 200 OK";
 
 void initSD() {
   pinMode(SD_CHIP_SELECT_PIN, OUTPUT);
@@ -77,18 +79,21 @@ int reportFile(Fat16* file) {
   /* Try connecting to the website.
      Note: HTTP/1.1 protocol is used to keep the server from closing the connection before all data is read.
   */
+  Serial.print(F("tcp connect"));
   Adafruit_CC3000_Client www = cc3000->connectTCP(ip, 80);
   
+  uint32_t totalContentLength = ((strlen(FORM_BOUNDARY)+2)*2) + strlen(FILE_HEADER) + 2;
+  totalContentLength += file->fileSize();
+  
   if (www.connected()) {
-    www.fastrprint(F("POST ")); www.fastrprint(CSV_WEBPAGE); www.fastrprint(F(" HTTP/1.1\r\n"));
-    www.fastrprint(F("Host: ")); www.fastrprint(CSV_WEBPAGE); www.fastrprint(F("\r\n"));
+    www.fastrprint(F("POST ")); www.fastrprint(CSV_WEBPAGE); www.fastrprint(F(" HTTP/1.1"));
+    www.fastrprint(F("\r\nHost: ")); www.fastrprint(WEBSITE);
+    www.fastrprint(F("\r\nAuthorization: Basic a2Vnc2NyaWJlOnRlc3Q="));
+    www.fastrprint(F("\r\nUser-Agent: KegScribe"));
+    www.fastrprint(F("\r\nContent-Length: ")); www.print(totalContentLength);
     www.fastrprint(F("\r\nContent-Type: multipart/form-data; boundary=")); www.fastrprint(FORM_BOUNDARY);
-    //www.fastrprint(F("\r\nUser-Agent: KegScribe\r\n"));
-    www.fastrprint(F("Content-Length: ")); //www.print(file->fileSize());
-    www.fastrprint(F("\r\nAuthorization: Basic a2Vnc2NyaWJlOnRlc3Q=\r\n"));
-    www.fastrprint("\r\n--"); www.fastrprint(FORM_BOUNDARY);
-    www.fastrprint(F("Content-Disposition: form-data; name=\"f\"; filename=\"filename.csv\"\r\n"));
-    www.fastrprint(F("Content-Type: text/csv\r\n\r\n"));
+    www.fastrprint("\r\n\r\n"); www.fastrprint(FORM_BOUNDARY);
+    www.fastrprint(F(FILE_HEADER));
     
     int16_t n;
     uint8_t buf[7] = {0,0,0,0,0,0,0};// nothing special about 7, just a lucky number.
@@ -97,7 +102,25 @@ int reportFile(Fat16* file) {
       www.fastrprint((char*)buf);
     }
     
-    www.fastrprint("--"); www.fastrprint(FORM_BOUNDARY); www.fastrprint("--");
+    www.fastrprint(FORM_BOUNDARY); www.fastrprint("--");
+    
+    
+    // Read data until either the connection is closed, or the idle timeout is reached.
+    byte i = 0;
+    unsigned long lastRead = millis();
+    while (www.connected() && (millis() - lastRead < IDLE_TIMEOUT_MS)) {
+      while (www.available() && (i < strlen(SUCCESS_RESPONSE))) {
+        char c = www.read();
+        if ((i < strlen(SUCCESS_RESPONSE)) && c != SUCCESS_RESPONSE[i++]) {
+          Serial.print(FAIL_MSG);
+          return 2;
+        }
+        Serial.print(c);
+        lastRead = millis();
+      }
+    }
+    
+    Serial.print(OK_MSG);
     
   } else {
     Serial.print(FAIL_MSG);
@@ -134,7 +157,7 @@ void reportFiles() {
     Serial.print("read ");
     cbPrintFilename(filename, dir);
     Serial.print(filename);
-
+    
     file.open(filename, O_READ);
     if (!file.isOpen()) {
       // no more files
