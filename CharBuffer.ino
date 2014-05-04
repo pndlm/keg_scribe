@@ -14,8 +14,8 @@ int cbPrintInt(char* buf, int n, int pad) {
   } else {
     pad = 0;
   }
-  memcpy(buf+pad, b, l+1);
-  return l+pad;
+  memcpy(&buf[pad], b, l+1);
+  return (l+pad);
 }
 
 int cbPrintInt(char* buf, int n) {
@@ -42,7 +42,7 @@ int sprintFloat(char* buffer, float value) {
   byte offset = cbPrintInt(buffer, valueA);
   buffer[offset++] = '.';
   offset += cbPrintInt(&buffer[offset], valueB);
-  buffer[offset++] = 0;
+  buffer[offset] = 0;
   return offset;
 }
 
@@ -67,7 +67,7 @@ int sprintTime(char* buffer, time_t* t, bool shortMode) {
     buffer[offset++] = ':';
     offset += cbPrintInt(&buffer[offset], second(*t), 2);
   }
-  buffer[offset++] = 0;
+  buffer[offset] = 0;
   return offset;
 }
 
@@ -76,10 +76,10 @@ int sprintTime(char* buffer, time_t* t, bool shortMode) {
 int sprintFilename(char* buffer, time_t* t) {
   byte offset = sprintTime(buffer, t, true);
   buffer[offset++] = '.';
-  buffer[offset++] = 'c';
-  buffer[offset++] = 's';
-  buffer[offset++] = 'v';
-  buffer[offset++] = 0;
+  buffer[offset++] = 'C';
+  buffer[offset++] = 'S';
+  buffer[offset++] = 'V';
+  buffer[offset] = 0;
   return offset;
 }
 
@@ -93,6 +93,6 @@ int cbPrintFilename(char* buf, dir_t dir) {
     }
     buf[offset++] = (char)(dir.name[i]);
   }
-  buf[offset++] = 0;
+  buf[offset] = 0;
   return offset;
 }
