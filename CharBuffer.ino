@@ -6,7 +6,7 @@
 int cbPrintInt(char* buf, int n, int pad) {
   char b[8 * sizeof (int) + 1];
   itoa(n,b,10);
-  int l = strlen(b);
+  byte l = strlen(b);
   if (l < pad) {
     pad -= l;
     memset(buf, '0', pad);
@@ -39,7 +39,7 @@ int cbPrintULong(char* buf, unsigned long n) {
 int sprintFloat(char* buffer, float value) {
   int valueA = floor(value);
   int valueB = floor((value-valueA) * 10000);
-  short offset = cbPrintInt(buffer, valueA);
+  byte offset = cbPrintInt(buffer, valueA);
   buffer[offset++] = '.';
   offset += cbPrintInt(&buffer[offset], valueB);
   buffer[offset++] = 0;
@@ -53,7 +53,7 @@ int sprintTimeStamp(char* buffer, time_t t) {
 // provide a string buffer of at least 20 characters
 // the buffer will be filled like: 2012-03-29T17:00:00
 int sprintTime(char* buffer, time_t* t, bool shortMode) {
-  short offset = 0;
+  byte offset = 0;
   offset += cbPrintInt(&buffer[offset], year(*t), 4);
   if(!shortMode) { buffer[offset++] = '-'; }
   offset += cbPrintInt(&buffer[offset], month(*t), 2);
@@ -74,7 +74,7 @@ int sprintTime(char* buffer, time_t* t, bool shortMode) {
 // provide a string buffer of at least 20 characters
 // the buffer will be filled like: ####.####
 int sprintFilename(char* buffer, time_t* t) {
-  short offset = sprintTime(buffer, t, true);
+  byte offset = sprintTime(buffer, t, true);
   buffer[offset++] = '.';
   buffer[offset++] = 'c';
   buffer[offset++] = 's';

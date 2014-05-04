@@ -29,7 +29,7 @@ int recordValue(char importCode[], time_t* t, float value) {
   
   Serial.print(F("filename "));
   
-  char filename[12];
+  char filename[13];
   sprintFilename(filename, t);
   
   Serial.print(filename); Serial.print("\r\ntimestamp ");
@@ -121,6 +121,7 @@ int reportFile(Fat16* file) {
 
 void reportFiles() {
   
+  char filename[13];
   dir_t dir;
   for (uint16_t index = 0; file.readDir(&dir, &index, DIR_ATT_VOLUME_ID); index++) {
     //for (uint8_t i = 0; i < 11; i++) {
