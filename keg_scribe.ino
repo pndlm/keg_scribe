@@ -125,9 +125,13 @@ void loop() {
   
   time_t currentTime = now();
   
+  char timestamp[20];
+  sprintTime(timestamp, &currentTime, false);
+  Serial.print("timestamp ");Serial.print(timestamp); Serial.print(F("\r\n"));
+  
   Serial.print(temperature1); Serial.print(F("°F (Ambient)\r\n"));
   Serial.print(temperature2); Serial.print(F("°F (Fridge)\r\n"));
-  Serial.print(tap1L); Serial.print(F("l\r\n")); 
+  Serial.print(tap1L); Serial.print(F("l\r\n"));
   
   // Record Temperature
   recordValue(TEMPERATURE1_IMPORT_CODE, &currentTime, temperature1);

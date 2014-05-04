@@ -57,14 +57,15 @@ bool displayConnectionDetails(void)
   }
   else
   {
-    /*
+    Serial.print(OK_MSG);
+    
     Serial.print(F("\nip addr  ")); cc3000.printIPdotsRev(ipAddress);
     Serial.print(F("\nnetmask  ")); cc3000.printIPdotsRev(netmask);
     Serial.print(F("\ngateway  ")); cc3000.printIPdotsRev(gateway);
     Serial.print(F("\ndhcp srv ")); cc3000.printIPdotsRev(dhcpserv);
     Serial.print(F("\ndns srv  ")); cc3000.printIPdotsRev(dnsserv);
-    */
-    Serial.print(OK_MSG);
+    Serial.print(F("\n"));
+    
     return true;
   }
 }
@@ -77,11 +78,13 @@ uint32_t getWebServerIP(Adafruit_CC3000* cc3000) {
   uint32_t ip = 0;
   
   #if USE_HARD_CODED_IP
+    Serial.print(F("hard-coded ip "));
     ip = cc3000->IP2U32(HARD_CODED_IP);
   #else
     // Try looking up the website's IP address
     if (ip == 0) {
-      Serial.print(WEBSITE); Serial.print(F(" -> "));
+      Serial.print(F("dns lookup "));
+      Serial.print(WEBSITE);
       if (! cc3000->getHostByName(WEBSITE, &ip)) {
         Serial.print(F("Couldn't resolve!\r\n"));
         return 0;
@@ -89,10 +92,8 @@ uint32_t getWebServerIP(Adafruit_CC3000* cc3000) {
     }
   #endif
   
-  /*
   cc3000->printIPdotsRev(ip);
-  Serial.print();
-  */
+  Serial.print(F("\r\n"));
   
   return ip;
 }

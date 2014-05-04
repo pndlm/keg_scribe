@@ -27,27 +27,18 @@ void initSD() {
 
 int recordValue(char importCode[], time_t* t, float value) {
   
-  Serial.print(F("filename "));
-  
-  char filename[13];
+  char filename[20];
   sprintFilename(filename, t);
-  
-  Serial.print(filename); Serial.print("\r\ntimestamp ");
   
   char timestamp[20];
   sprintTime(timestamp, t, false);
   
-  Serial.print(timestamp); Serial.print("\r\nvalue ");
-  
   char valueString[16];
   sprintFloat(valueString, value);
   
-  Serial.print(valueString); Serial.print("\r\n");
-  
   // if the file didn't open, print an error:
-  Serial.print(F("open file "));
+  Serial.print(F("writing "));
   Serial.print(filename);
-  Serial.print("\r\n");
   
   // O_CREAT - create the file if it does not exist
   // O_WRITE - open for write
@@ -60,7 +51,6 @@ int recordValue(char importCode[], time_t* t, float value) {
   }
     
   if(file.fileSize() == 0) {
-    Serial.print(F("new file\r\n"));
     file.print(F("ImportCode,Timestamp,Value\r\n"));
   }
     
@@ -70,6 +60,7 @@ int recordValue(char importCode[], time_t* t, float value) {
   
   // close the file:
   file.close();
+  Serial.print(OK_MSG);
   
   return 0;
 }
