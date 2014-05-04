@@ -124,6 +124,13 @@ void reportFiles() {
       continue;
     }
     
+    // skip anything that is not a csv
+    if (dir.name[8]  != 'C' ||
+        dir.name[9]  != 'S' ||
+        dir.name[10] != 'V' ) {
+      continue; 
+    }
+    
     Serial.print("read ");
     cbPrintFilename(filename, dir);
     Serial.print(filename);
