@@ -35,7 +35,7 @@ int recordValue(char importCode[], time_t* t, float value) {
   Serial.print(filename); Serial.print("\r\ntimestamp ");
   
   char timestamp[20];
-  sprintTime(timestamp, t, true);
+  sprintTime(timestamp, t, false);
   
   Serial.print(timestamp); Serial.print("\r\nvalue ");
   

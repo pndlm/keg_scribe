@@ -3,13 +3,23 @@
 /*
  * Write an unsigned number to file
  */
-int cbPrintInt(char* buf, int n) {
+int cbPrintInt(char* buf, int n, int pad) {
   char b[8 * sizeof (int) + 1];
   itoa(n,b,10);
   int l = strlen(b);
-  
-  memcpy(buf, b, l+1);
-  return l;
+  if (l < pad) {
+    pad -= l;
+    memset(buf, '0', pad);
+    l = pad;
+  } else {
+    pad = 0;
+  }
+  memcpy(buf+pad, b, l+1);
+  return l+pad;
+}
+
+int cbPrintInt(char* buf, int n) {
+  return cbPrintInt(buf, n, 0);
 }
 
 /*
@@ -44,18 +54,18 @@ int sprintTimeStamp(char* buffer, time_t t) {
 // the buffer will be filled like: 2012-03-29T17:00:00
 int sprintTime(char* buffer, time_t* t, bool shortMode) {
   short offset = 0;
-  offset += cbPrintInt(&buffer[offset], year(*t));
+  offset += cbPrintInt(&buffer[offset], year(*t), 4);
   if(!shortMode) { buffer[offset++] = '-'; }
-  offset += cbPrintInt(&buffer[offset], month(*t));
+  offset += cbPrintInt(&buffer[offset], month(*t), 2);
   if(!shortMode) { buffer[offset++] = '-'; }
-  offset += cbPrintInt(&buffer[offset], day(*t));
+  offset += cbPrintInt(&buffer[offset], day(*t), 2);
   if (!shortMode) { 
     buffer[offset++] = 'T';
-    offset += cbPrintInt(&buffer[offset], hour(*t));
+    offset += cbPrintInt(&buffer[offset], hour(*t), 2);
     buffer[offset++] = ':';
-    offset += cbPrintInt(&buffer[offset], minute(*t));
+    offset += cbPrintInt(&buffer[offset], minute(*t), 2);
     buffer[offset++] = ':';
-    offset += cbPrintInt(&buffer[offset], second(*t));
+    offset += cbPrintInt(&buffer[offset], second(*t), 2);
   }
   buffer[offset++] = 0;
   return offset;
