@@ -42,7 +42,7 @@ int recordValue(char importCode[], time_t* t, float value) {
   
   // O_CREAT - create the file if it does not exist
   // O_WRITE - open for write
-  file.open(filename, O_CREAT | O_WRITE);
+  file.open(filename, O_CREAT | O_APPEND | O_WRITE );
   
   if (!file.isOpen()) {
     // if the file didn't open, print an error:
