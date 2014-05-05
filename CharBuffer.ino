@@ -78,11 +78,8 @@ byte sprintTime(char* buffer, time_t* t, bool shortMode) {
 // the buffer will be filled like: ####.####
 byte sprintFilename(char* buffer, time_t* t) {
   byte offset = sprintTime(buffer, t, true);
-  buffer[offset++] = '.';
-  buffer[offset++] = 'C';
-  buffer[offset++] = 'S';
-  buffer[offset++] = 'V';
-  buffer[offset] = 0;
+  memcpy(&buffer[offset], ".CSV", 5);
+  offset += 5;
   return offset;
 }
 

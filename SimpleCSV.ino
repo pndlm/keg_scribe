@@ -169,20 +169,15 @@ void reportFiles() {
   uint16_t index = 0;
   for (uint16_t index = 0; file.readDir(&dir, &index, DIR_ATT_VOLUME_ID); index++) {
     
-    //for (uint8_t i = 0; i < 11; i++) {
-    //  if (dir.name[i] == ' ') { continue; }
-    // todo: only use valid file names
-    //}
-
     if (!DIR_IS_FILE(&dir)) {
       continue;
     }
     
-    // skip anything that is not a csv
-    if (dir.name[8]  != 'C' ||
-        dir.name[9]  != 'S' ||
-        dir.name[10] != 'V' ) {
-      continue; 
+    for (byte i = 0; i < 3; i++) {
+      if (dir.name[i+8] != "CSV"[i]) {
+        // continue outside loop;
+        goto nextfile;
+      }
     }
     
     Serial.print("read ");
@@ -205,6 +200,8 @@ void reportFiles() {
     }
     
     file.close();
+    
+nextfile:;
   }
 }
 
