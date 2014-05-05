@@ -9,28 +9,37 @@ volatile uint32_t lastflowratetimer = 0;
 volatile float flowrate;
 
 void initFlowSensor() {
-  pinMode(FLOWSENSOR_DIGITAL_PIN, INPUT);
-  digitalWrite(FLOWSENSOR_DIGITAL_PIN, HIGH);
-  lastflowpinstate = 0; digitalRead(FLOWSENSOR_DIGITAL_PIN);
+  // LED off
+  pinMode(FLOWSENSOR_LED_DIGITAL_PIN, OUTPUT);
+  digitalWrite(FLOWSENSOR_LED_DIGITAL_PIN, LOW);
+  
+  pinMode(FLOWSENSOR1_DIGITAL_PIN, INPUT);
+  digitalWrite(FLOWSENSOR1_DIGITAL_PIN, HIGH);
+  lastflowpinstate = digitalRead(FLOWSENSOR1_DIGITAL_PIN);
   useInterrupt(true);
 }
 
 // Interrupt is called once a millisecond, looks for any pulses from the sensor!
 SIGNAL(TIMER0_COMPA_vect) {
-  uint8_t x = digitalRead(FLOWSENSOR_DIGITAL_PIN);
+  uint8_t x = digitalRead(FLOWSENSOR1_DIGITAL_PIN);
   
   if (x == lastflowpinstate) {
     lastflowratetimer++;
+    digitalWrite(FLOWSENSOR_LED_DIGITAL_PIN, LOW);
     return; // nothing changed!
   }
+  
+  digitalWrite(FLOWSENSOR_LED_DIGITAL_PIN, HIGH);
   
   if (x == HIGH) {
     //low to high transition!
     pulses++;
   }
+    
   lastflowpinstate = x;
   flowrate = 1000.0;
   flowrate /= lastflowratetimer;  // in hertz
+  
   lastflowratetimer = 0;
 }
 
