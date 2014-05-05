@@ -3,7 +3,12 @@
 char cbBuf[11 * sizeof (int) + 1];
 
 /*
- * Write an unsigned number to file
+ * Write an integer to a character buffer
+ * the buffer will be padded with `pad`
+ * number of 0 characters.
+ * Returns the number of characters written
+ * a null character is not written and must
+ * be manually added.
  */
 byte cbPrintInt(char* buf, int n, int pad) {
   itoa(n,cbBuf,10);
@@ -15,25 +20,13 @@ byte cbPrintInt(char* buf, int n, int pad) {
   } else {
     pad = 0;
   }
-  memcpy(&buf[pad], cbBuf, l+1);
-  
+  memcpy(&buf[pad], cbBuf, l);
   return (l+pad);
 }
 
 byte cbPrintInt(char* buf, int n) {
   return cbPrintInt(buf, n, 0);
 }
-
-/*
- * Write an unsigned number to file
- */
-/*
-int cbPrintULong(char* buf, unsigned long n, int pad) {
-  ultoa(n,cbBuf,10);
-  return 0;
-  //return cbPrintBuf(buf, n, pad);
-}
-*/
 
 // provide a string buffer of at least 20 characters
 // the buffer will be filled like: ####.####
@@ -47,35 +40,30 @@ byte sprintFloat(char* buffer, float* ptrValue) {
   return offset;
 }
 
-/*
-int sprintTimeStamp(char* buffer, time_t t) {
-  return cbPrintULong(buffer, t, 0);
-}
-*/
-
 // provide a string buffer of at least 20 characters
 // the buffer will be filled like: 2012-03-29T17:00:00
 byte sprintTime(char* buffer, time_t* t, bool shortMode) {
-  byte offset = 0;
-  offset += cbPrintInt(&buffer[offset], year(*t), 4);
-  if(!shortMode) { buffer[offset++] = '-'; }
-  offset += cbPrintInt(&buffer[offset], month(*t), 2);
-  if(!shortMode) { buffer[offset++] = '-'; }
-  offset += cbPrintInt(&buffer[offset], day(*t), 2);
-  if (!shortMode) { 
-    buffer[offset++] = 'T';
-    offset += cbPrintInt(&buffer[offset], hour(*t), 2);
-    buffer[offset++] = ':';
-    offset += cbPrintInt(&buffer[offset], minute(*t), 2);
-    buffer[offset++] = ':';
-    offset += cbPrintInt(&buffer[offset], second(*t), 2);
+  
+  if (shortMode) {
+    cbPrintInt(buffer, year(*t), 4);
+    cbPrintInt(&buffer[4], month(*t), 2);
+    cbPrintInt(&buffer[6], day(*t), 2);
+    return 8;
   }
-  buffer[offset] = 0;
-  return offset;
+  
+  // first copy our template
+  memcpy(buffer, "0000-00-00T00:00:00", 20);
+  cbPrintInt(buffer,      year(*t),   4);
+  cbPrintInt(&buffer[5],  month(*t),  2);
+  cbPrintInt(&buffer[8],  day(*t),    2);
+  cbPrintInt(&buffer[11], hour(*t),   2);
+  cbPrintInt(&buffer[14], minute(*t), 2);
+  cbPrintInt(&buffer[17], second(*t), 2);
+  return 19;
 }
 
-// provide a string buffer of at least 20 characters
-// the buffer will be filled like: ####.####
+// provide a string buffer of at least 13 characters
+// the buffer will be filled like: ########.CSV
 byte sprintFilename(char* buffer, time_t* t) {
   byte offset = sprintTime(buffer, t, true);
   memcpy(&buffer[offset], ".CSV", 5);
