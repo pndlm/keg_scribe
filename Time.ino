@@ -47,15 +47,13 @@ void initTime() {
 // which in turn has roots in Arduino UdpNTPClient tutorial.
 time_t getNtpTime(void) {
   
-  return 1;
-  
   Adafruit_CC3000_Client client;
   Adafruit_CC3000* cc3000 = getCC3000();
 
   uint8_t       buf[48];
   unsigned long ip, startTime, t = 0L;
 
-  Serial.print(F("time"));
+  Serial.print(F("sntp "));
 
   // Hostname to IP lookup; use NTP pool (rotates through servers)
   if(cc3000->getHostByName(NTP_SERVER, &ip)) {
