@@ -10,9 +10,6 @@ Fat16 file;
 
 #define FILE_HEADER              F("Content-Disposition: form-data; name=\"file\"; filename=\"filename.csv\"\r\nContent-Type: text/csv\r\n\r\n")
 #define FILE_HEADER_SIZE         96
-//#define SUCCESS_RESPONSE       F("HTTP/1.1 200 OK\r\n")
-const char SUCCESS_RESPONSE[] PROGMEM = "HTTP/1.1 200 OK\r\n";
-const char ERROR_PREFIX[]     PROGMEM = " error ";
 
 #define SUCCESS_RESPONSE_SIZE    17
 
@@ -20,9 +17,8 @@ void initSD() {
   pinMode(SD_CHIP_SELECT_PIN, OUTPUT);
   
   // initialize the SD card
-  Serial.print(F("sd"));
+  Serial.print(F("sd "));
   if (!card.init(false, SD_CHIP_SELECT_PIN)) {
-    Serial.print(ERROR_PREFIX);
     Serial.print(card.errorCode);
     Serial.print(FAIL_MSG);
     return;
@@ -31,7 +27,6 @@ void initSD() {
   // initialize a FAT16 volume
   Serial.print(F("fat16"));
   if (!Fat16::init(&card)) {
-    Serial.print(ERROR_PREFIX);
     Serial.print(card.errorCode);
     Serial.print(FAIL_MSG);
     return;
@@ -39,8 +34,6 @@ void initSD() {
   
   Serial.print(OK_MSG);
 }
-
-
 
 bool recordValue(const char importCode[], time_t* t, float* ptrValue) {
   
@@ -54,8 +47,8 @@ bool recordValue(const char importCode[], time_t* t, float* ptrValue) {
   sprintFloat(valueString, ptrValue);
   
   // if the file didn't open, print an error:
-  Serial.print(F("writing "));
-  Serial.print(filename);
+  //Serial.print(F("write "));
+  //Serial.print(filename);
   
   // O_CREAT - create the file if it does not exist
   // O_WRITE - open for write
@@ -77,19 +70,9 @@ bool recordValue(const char importCode[], time_t* t, float* ptrValue) {
   
   // close the file:
   file.close();
-  Serial.print(OK_MSG);
+  //Serial.print(OK_MSG);
   
   return 0;
-}
-
-int safeprint(Adafruit_CC3000_Client www, const __FlashStringHelper* string) {
-  //delay(CC3000_DELAY);
-  return www.fastrprint(string);
-}
-
-int safeprint(Adafruit_CC3000_Client www, const char* string) {
-  //delay(CC3000_DELAY);
-  return www.fastrprint(string);
 }
 
 bool reportFile(Fat16* file) {
@@ -114,55 +97,56 @@ bool reportFile(Fat16* file) {
     (uint32_t)file->fileSize() + 2 +// file data + crlf
     FORM_BOUNDARY_END_SIZE;
   
-  Serial.print(F("len: "));
-  Serial.println(totalContentLength);
-        
   if (www.connected()) {
-    safeprint(www, F("POST "));
-    safeprint(www, CSV_WEBPAGE);
-    safeprint(www, F(" HTTP/1.1"));
-    safeprint(www, F("\r\nHost: "));
-    safeprint(www, WEBSITE);
-    safeprint(www, F("\r\nAuthorization: Basic a2Vnc2NyaWJlOnRlc3Q="));
-    safeprint(www, F("\r\nUser-Agent: KegScribe"));
-    safeprint(www, F("\r\nConnection: Close"));
-    safeprint(www, F("\r\nContent-Length: "));
+    www.fastrprint(F("POST "));
+    www.fastrprint(CSV_WEBPAGE);
+    www.fastrprint(F(" HTTP/1.1"));
+    www.fastrprint(F("\r\nHost: "));
+    www.fastrprint(WEBSITE);
+    www.fastrprint(F("\r\nAuthorization: Basic a2Vnc2NyaWJlOnRlc3Q="));
+    www.fastrprint(F("\r\nContent-Length: "));
     www.print(totalContentLength);
-    safeprint(www, F("\r\nContent-Type: multipart/form-data; boundary="));
-    safeprint(www, FORM_BOUNDARY_BASE);
-    safeprint(www, F("\r\n"));
-    safeprint(www, F("\r\n"));
+    www.fastrprint(F("\r\nContent-Type: multipart/form-data; boundary="));
+    www.fastrprint(FORM_BOUNDARY_BASE);
+    www.fastrprint(F("\r\n"));
+    www.fastrprint(F("\r\n"));
     
-    safeprint(www, FORM_BOUNDARY_START);
-    safeprint(www, FILE_HEADER);
+    www.fastrprint(FORM_BOUNDARY_START);
+    www.fastrprint(FILE_HEADER);
     
     int16_t c;
     while ((c = file->read()) > 0) {
-      Serial.print(c);
       www.write(&c, 1, 0);
-      delay(CC3000_DELAY);
     }
     
-    safeprint(www, F("\r\n"));
-    safeprint(www, FORM_BOUNDARY_END);
+    /*
+    int16_t n;    
+    uint8_t buf;// nothing special about 7, just a lucky number.
+    while ((n = file.read(&buf, sizeof(buf))) >= 0) {
+      for (uint8_t i = 0; i < n; i++) Serial.write(buf[i]);
+      Serial.print(buf);
+      www.write(&buf, 1, 0);
+    }
+    */
     
-    Serial.print(" sent");
+    www.fastrprint(F("\r\n"));
+    www.fastrprint(FORM_BOUNDARY_END);
     
     // Read data until either the connection is closed, or the idle timeout is reached.
     byte i = 0;
     unsigned long lastRead = millis();
     while (www.connected() && (millis() - lastRead < IDLE_TIMEOUT_MS)) {
-      delay(CC3000_DELAY);
-      while (www.available() && (i < SUCCESS_RESPONSE_SIZE)) {
+      // read to the first white space
+      while (www.available()) {
         char c = www.read();
-        Serial.print(c);
-        if ((i < SUCCESS_RESPONSE_SIZE) && c != SUCCESS_RESPONSE[i++]) {
-          Serial.print(FAIL_MSG);
-          www.close();
-          return 1;
+        if (i <= 15) {
+          if (c != "HTTP/1.1 200 OK\r\n"[i++]) {
+            Serial.print(FAIL_MSG);
+            www.close();
+            return 1;
+          }
         }
         lastRead = millis();
-        delay(CC3000_DELAY);
       }
     }
     
@@ -180,15 +164,16 @@ bool reportFile(Fat16* file) {
 }
 
 void reportFiles() {
-  
-  char filename[13];
   dir_t dir;
+  char filename[13];
+  uint16_t index = 0;
   for (uint16_t index = 0; file.readDir(&dir, &index, DIR_ATT_VOLUME_ID); index++) {
+    
     //for (uint8_t i = 0; i < 11; i++) {
     //  if (dir.name[i] == ' ') { continue; }
     // todo: only use valid file names
     //}
-    
+
     if (!DIR_IS_FILE(&dir)) {
       continue;
     }

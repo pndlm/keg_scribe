@@ -30,9 +30,7 @@ All text above must be included in any redistribution
 //#include "LiquidCrystal.h"
 //LiquidCrystal lcd(7, 8, 9, 10, 11, 12);
 
-//#define OK_MSG     (" ok.\r\n")
-//#define FAIL_MSG   (" fail.\r\n")
-const char OK_MSG[] = " ok.\r\n";
+const char OK_MSG[]   = " ok.\r\n";
 const char FAIL_MSG[] = " fail.\r\n";
 
 // which pin to use for reading the sensor? can use any pin!
@@ -103,7 +101,9 @@ void initFlowSensor() {
 void setup() {
   Serial.begin(115200);
   Serial.print(F("KegScribe 1.0\r\n")); 
-  
+  Serial.print(F("FreeRam: "));
+  Serial.print(FreeRam(), DEC);
+  Serial.print(F("\r\n"));
   // Fat16 lib doesn't play nice
   // so must be inited first.
   initSD();
@@ -117,26 +117,20 @@ unsigned long millisSinceLastReport = -1*REPORT_INTERVAL;
 
 void loop() {
   
-  if (timeStatus() == timeNotSet) {
-    Serial.print("time not set.\r\n");
-  }
-    
   float temperature1 = readTemperatureF(TEMPERATURE1_ANALOG_PIN);
   float temperature2 = readTemperatureF(TEMPERATURE2_ANALOG_PIN);
-  float tap1L = readTapLiters();
+  float tap1L = ((pulses/7.5)/60.0); //readTapLiters();
   
   time_t currentTime = now();
   
-  /*
   char timestamp[20];
   memset(timestamp, 0, sizeof(timestamp));
   sprintTime(timestamp, &currentTime, false);
-  Serial.print(F("timestamp "));Serial.print(timestamp); Serial.print(F("\r\n"));
-  */
+  Serial.print(F("\r\n"));  Serial.print(timestamp); Serial.print(F("\r\n"));  
   
-  Serial.print(temperature1); Serial.print(F("F (Ambient)\r\n"));
-  Serial.print(temperature2); Serial.print(F("F (Fridge)\r\n"));
-  Serial.print(tap1L); Serial.print(F("l\r\n"));
+  Serial.print(temperature1); Serial.print(F(" F (Amb)\r\n"));
+  Serial.print(temperature2); Serial.print(F(" F (Keg)\r\n"));
+  Serial.print(tap1L); Serial.print(F(" l\r\n"));
   
   // Record Temperature
   recordValue(TEMPERATURE1_IMPORT_CODE, &currentTime, &temperature1);
@@ -150,7 +144,7 @@ void loop() {
   
   if (millis() > (millisSinceLastReport + REPORT_INTERVAL)) {
     // Report values to Hakase Server
-    Serial.print(F("Sending data...\r\n"));
+    Serial.print(F("\r\n"));
     reportFiles();
     millisSinceLastReport = millis();
   }
@@ -198,7 +192,7 @@ float readTemperatureF(int sensorPin) {
   int reading = analogRead(sensorPin);  
   
   // see explanation below
-  return ((((reading * 5.0)/1024.0) * 100) * 9.0 / 5.0) + 32.0;
+  return ((((analogRead(sensorPin) * 5.0)/1024.0) * 100) * 9.0 / 5.0) + 32.0;
   
   /*
   // converting that reading to voltage, for 3.3v arduino use 3.3

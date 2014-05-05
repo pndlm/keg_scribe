@@ -77,15 +77,15 @@ uint32_t getWebServerIP(Adafruit_CC3000* cc3000) {
   uint32_t ip = 0;
   
   #if USE_HARD_CODED_IP
-    Serial.print(F("hard-coded ip "));
+    Serial.print(F("fixed ip "));
     ip = cc3000->IP2U32(HARD_CODED_IP);
   #else
     // Try looking up the website's IP address
     if (ip == 0) {
-      Serial.print(F("dns lookup "));
+      Serial.print(F("nslookup "));
       Serial.print(WEBSITE);
       if (! cc3000->getHostByName(WEBSITE, &ip)) {
-        Serial.print(F("Couldn't resolve!\r\n"));
+        Serial.print(FAIL_MSG);
         return 0;
       }
     }
