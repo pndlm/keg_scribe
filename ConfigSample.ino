@@ -17,14 +17,27 @@ to the repository.
 #define USE_HARD_CODED_IP   true
 #define HARD_CODED_IP       172, 16, 25, 63
 
+// change this to match your SD shield or module;
+//     Arduino Ethernet shield: pin 4
+//     Adafruit SD shields and modules: pin 10
+//     Sparkfun SD shield: pin 8
+#define SD_CHIP_SELECT_PIN       4
+
 // When not using a hard coded IP, use this address:
 #define WEBSITE      "my.hakase.server.com"
 
 // Use this path to report data on the Hakase server
-#define WEBPAGE      "/import/simpleJSON"
+#define CSV_WEBPAGE      "/import/simpleCSV"
+#define JSON_WEBPAGE      "/import/simpleJSON"
 
 #define IDLE_TIMEOUT_MS  3000      // Amount of time to wait (in milliseconds) with no data 
                                    // received before closing the connection.  If you know the server
                                    // you're accessing is quick to respond, you can reduce this value.
+                                   
+// change this to match your SD shield or module;
+//     Arduino Ethernet shield: pin 4
+//     Adafruit SD shields and modules: pin 10
+//     Sparkfun SD shield: pin 8
+const int chipSelect = 4;                                   
 
 */
