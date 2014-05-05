@@ -40,10 +40,10 @@ const char FAIL_MSG[] = " fail.\r\n";
 #define TEMPERATURE2_ANALOG_PIN 1
 #define FLOWSENSOR_DIGITAL_PIN 2
 
-const char TEMPERATURE1_IMPORT_CODE[] PROGMEM = "KegScribeAmbientTemperature";
-const char TEMPERATURE2_IMPORT_CODE[] PROGMEM = "KegScribeFridgeTemperature";
-const char TAP1_IMPORT_CODE[] PROGMEM = "KegScribeTap1";
-const char TAP2_IMPORT_CODE[] PROGMEM = "KegScribeTap2";
+const char TEMPERATURE1_IMPORT_CODE[] = "KegScribeAmbientTemperature";
+const char TEMPERATURE2_IMPORT_CODE[] = "KegScribeFridgeTemperature";
+const char TAP1_IMPORT_CODE[] = "KegScribeTap1";
+const char TAP2_IMPORT_CODE[] = "KegScribeTap2";
 
 // number of milliseconds between recording values
 #define LOOP_INTERVAL (1000)
@@ -139,11 +139,11 @@ void loop() {
   Serial.print(tap1L); Serial.print(F("l\r\n"));
   
   // Record Temperature
-  recordValue(TEMPERATURE1_IMPORT_CODE, &currentTime, temperature1);
-  recordValue(TEMPERATURE2_IMPORT_CODE, &currentTime, temperature2);
+  recordValue(TEMPERATURE1_IMPORT_CODE, &currentTime, &temperature1);
+  recordValue(TEMPERATURE2_IMPORT_CODE, &currentTime, &temperature2);
   
   // Report Tap 1
-  if(!recordValue(TAP1_IMPORT_CODE, &currentTime, tap1L)) {
+  if(!recordValue(TAP1_IMPORT_CODE, &currentTime, &tap1L)) {
     // reset the pulse counts after a successful report
     pulses = 0;
   }
@@ -175,9 +175,15 @@ float readTapLiters() {
   // Liters = Q * time elapsed (seconds) / 60 (seconds/minute)
   // Liters = (Frequency (Pulses/second) / 7.5) * time elapsed (seconds) / 60
   // Liters = Pulses / (7.5 * 60)
+  return ((pulses/7.5)/60.0);
+  
+  /*
   float liters = pulses;
   liters /= 7.5;
   liters /= 60.0;
+  
+  return liters;
+  */
 
 /*
   // if a brass sensor use the following calculation
@@ -186,16 +192,17 @@ float readTapLiters() {
   liters -= 6;
   liters /= 60.0;
 */
-  //lcd.setCursor(0, 1);
-  //lcd.print(liters); lcd.print(" Liters        ");
-
-  return liters;  
 }
 
 float readTemperatureF(int sensorPin) {
   int reading = analogRead(sensorPin);  
+  
+  // see explanation below
+  return ((((reading * 5.0)/1024.0) * 100) * 9.0 / 5.0) + 32.0;
+  
+  /*
   // converting that reading to voltage, for 3.3v arduino use 3.3
-  float voltage = reading * 5.0;
+  float voltage = (reading * 5.0);
   voltage /= 1024.0; 
   
   // now print out the temperature
@@ -205,4 +212,5 @@ float readTemperatureF(int sensorPin) {
   float temperatureF = (temperatureC * 9.0 / 5.0) + 32.0;
   
   return temperatureF;
+  */
 }

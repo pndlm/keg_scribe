@@ -10,8 +10,9 @@ Fat16 file;
 
 #define FILE_HEADER              F("Content-Disposition: form-data; name=\"file\"; filename=\"filename.csv\"\r\nContent-Type: text/csv\r\n\r\n")
 #define FILE_HEADER_SIZE         96
-//#define SUCCESS_RESPONSE         F("HTTP/1.1 200 OK\r\n")
+//#define SUCCESS_RESPONSE       F("HTTP/1.1 200 OK\r\n")
 const char SUCCESS_RESPONSE[] PROGMEM = "HTTP/1.1 200 OK\r\n";
+const char ERROR_PREFIX[]     PROGMEM = " error ";
 
 #define SUCCESS_RESPONSE_SIZE    17
 
@@ -21,7 +22,7 @@ void initSD() {
   // initialize the SD card
   Serial.print(F("sd"));
   if (!card.init(false, SD_CHIP_SELECT_PIN)) {
-    Serial.print(" error ");
+    Serial.print(ERROR_PREFIX);
     Serial.print(card.errorCode);
     Serial.print(FAIL_MSG);
     return;
@@ -30,7 +31,7 @@ void initSD() {
   // initialize a FAT16 volume
   Serial.print(F("fat16"));
   if (!Fat16::init(&card)) {
-    Serial.print(" error ");
+    Serial.print(ERROR_PREFIX);
     Serial.print(card.errorCode);
     Serial.print(FAIL_MSG);
     return;
@@ -41,7 +42,7 @@ void initSD() {
 
 
 
-int recordValue(const char importCode[], time_t* t, float value) {
+bool recordValue(const char importCode[], time_t* t, float* ptrValue) {
   
   char filename[13];
   sprintFilename(filename, t);
@@ -50,7 +51,7 @@ int recordValue(const char importCode[], time_t* t, float value) {
   sprintTime(timestamp, t, false);
   
   char valueString[16];
-  sprintFloat(valueString, value);
+  sprintFloat(valueString, ptrValue);
   
   // if the file didn't open, print an error:
   Serial.print(F("writing "));
@@ -82,16 +83,16 @@ int recordValue(const char importCode[], time_t* t, float value) {
 }
 
 int safeprint(Adafruit_CC3000_Client www, const __FlashStringHelper* string) {
-  delay(CC3000_DELAY);
+  //delay(CC3000_DELAY);
   return www.fastrprint(string);
 }
 
 int safeprint(Adafruit_CC3000_Client www, const char* string) {
-  delay(CC3000_DELAY);
+  //delay(CC3000_DELAY);
   return www.fastrprint(string);
 }
 
-int reportFile(Fat16* file) {
+bool reportFile(Fat16* file) {
   Adafruit_CC3000* cc3000 = getCC3000();
   
   uint32_t ip = getWebServerIP(cc3000);
@@ -158,7 +159,7 @@ int reportFile(Fat16* file) {
         if ((i < SUCCESS_RESPONSE_SIZE) && c != SUCCESS_RESPONSE[i++]) {
           Serial.print(FAIL_MSG);
           www.close();
-          return 2;
+          return 1;
         }
         lastRead = millis();
         delay(CC3000_DELAY);
