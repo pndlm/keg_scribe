@@ -27,8 +27,6 @@ Written by Limor Fried/Ladyada  for Adafruit Industries.
 BSD license, check license.txt for more information
 All text above must be included in any redistribution
 **********************************************************/
-//#include "LiquidCrystal.h"
-//LiquidCrystal lcd(7, 8, 9, 10, 11, 12);
 
 const char OK_MSG[]   = " ok.\r\n";
 const char FAIL_MSG[] = " fail.\r\n";
@@ -36,21 +34,19 @@ const char FAIL_MSG[] = " fail.\r\n";
 // which pin to use for reading the sensor? can use any pin!
 #define TEMPERATURE1_ANALOG_PIN 0
 #define TEMPERATURE2_ANALOG_PIN 1
-#define FLOWSENSOR_DIGITAL_PIN 2
+#define FLOWSENSOR_DIGITAL_PIN  2
 
 const char TEMPERATURE1_IMPORT_CODE[] = "KegScribeAmbientTemperature";
 const char TEMPERATURE2_IMPORT_CODE[] = "KegScribeFridgeTemperature";
-const char TAP1_IMPORT_CODE[] = "KegScribeTap1";
-const char TAP2_IMPORT_CODE[] = "KegScribeTap2";
+const char TAP1_IMPORT_CODE[]         = "KegScribeTap1";
+const char TAP2_IMPORT_CODE[]         = "KegScribeTap2";
 
-// number of milliseconds between recording values
-#define LOOP_INTERVAL (1000)
 // number of milliseconds between recording to SD card
-#define RECORD_INTERVAL (1000UL*10UL*1UL)
+#define RECORD_INTERVAL (1000UL*60UL*1UL)
 // number of milliseconds between reports
 #define REPORT_INTERVAL (1000UL*60UL*5UL)
 // number of seconds between calls to the NTP server
-#define NTP_INTERVAL (60*60*24)
+#define NTP_INTERVAL    (60*60*24)
 
 // count how many pulses!
 volatile uint16_t pulses = 0;
