@@ -192,7 +192,7 @@ float readTemperatureF(int sensorPin) {
   int reading = analogRead(sensorPin);  
   
   // see explanation below
-  return ((((analogRead(sensorPin) * 5.0)/1024.0) * 100) * 9.0 / 5.0) + 32.0;
+  return (((((analogRead(sensorPin) * 5.0)/1024.0) - 0.5) * 100) * 9.0 / 5.0) + 32.0;
   
   /*
   // converting that reading to voltage, for 3.3v arduino use 3.3
