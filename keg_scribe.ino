@@ -5,6 +5,9 @@
 #include <Fat16.h>
 #include <Fat16util.h> // use functions to print strings from flash memory
 
+// for a smaller footprint
+#define SERIAL_BUFFER_SIZE 32
+
 /**********************************************************
 This is example code for using the Adafruit liquid flow meters. 
 
@@ -27,18 +30,20 @@ All text above must be included in any redistribution
 //#include "LiquidCrystal.h"
 //LiquidCrystal lcd(7, 8, 9, 10, 11, 12);
 
-#define OK_MSG     (" ok.\r\n")
-#define FAIL_MSG   (" fail.\r\n")
+//#define OK_MSG     (" ok.\r\n")
+//#define FAIL_MSG   (" fail.\r\n")
+const char OK_MSG[] = " ok.\r\n";
+const char FAIL_MSG[] = " fail.\r\n";
 
 // which pin to use for reading the sensor? can use any pin!
 #define TEMPERATURE1_ANALOG_PIN 0
 #define TEMPERATURE2_ANALOG_PIN 1
 #define FLOWSENSOR_DIGITAL_PIN 2
 
-#define TEMPERATURE1_IMPORT_CODE "KegScribeAmbientTemperature"
-#define TEMPERATURE2_IMPORT_CODE "KegScribeFridgeTemperature"
-#define TAP1_IMPORT_CODE "KegScribeTap1"
-#define TAP2_IMPORT_CODE "KegScribeTap2"
+const char TEMPERATURE1_IMPORT_CODE[] PROGMEM = "KegScribeAmbientTemperature";
+const char TEMPERATURE2_IMPORT_CODE[] PROGMEM = "KegScribeFridgeTemperature";
+const char TAP1_IMPORT_CODE[] PROGMEM = "KegScribeTap1";
+const char TAP2_IMPORT_CODE[] PROGMEM = "KegScribeTap2";
 
 // number of milliseconds between recording values
 #define LOOP_INTERVAL (1000)
@@ -88,26 +93,23 @@ void useInterrupt(boolean v) {
   }
 }
 
-void setup() {
-  Serial.begin(115200);
-  
-  Serial.print(F("KegScribe 1.0\r\n")); 
-  //Serial.print(F("Free RAM ")); Serial.print(getFreeRam(), DEC);
-  
-  //char buffer[200];
-  //cbPrintULong(buffer, 1234UL);
-  //Serial.print(buffer);
-  
-  initWifi();
-  initSD();
-  
+void initFlowSensor() {
   pinMode(FLOWSENSOR_DIGITAL_PIN, INPUT);
   digitalWrite(FLOWSENSOR_DIGITAL_PIN, HIGH);
   lastflowpinstate = 0; digitalRead(FLOWSENSOR_DIGITAL_PIN);
   useInterrupt(true);
+}
+
+void setup() {
+  Serial.begin(115200);
+  Serial.print(F("KegScribe 1.0\r\n")); 
   
-  setSyncProvider(getNtpTime);
-  setSyncInterval(NTP_INTERVAL);
+  // Fat16 lib doesn't play nice
+  // so must be inited first.
+  initSD();
+  initWifi();
+  //initFlowSensor();
+  initTime();
 }
 
 // start at -1*REPORT_INTERVAL so we always report at startup
@@ -125,12 +127,15 @@ void loop() {
   
   time_t currentTime = now();
   
+  /*
   char timestamp[20];
+  memset(timestamp, 0, sizeof(timestamp));
   sprintTime(timestamp, &currentTime, false);
-  Serial.print("timestamp ");Serial.print(timestamp); Serial.print(F("\r\n"));
+  Serial.print(F("timestamp "));Serial.print(timestamp); Serial.print(F("\r\n"));
+  */
   
-  Serial.print(temperature1); Serial.print(F("°F (Ambient)\r\n"));
-  Serial.print(temperature2); Serial.print(F("°F (Fridge)\r\n"));
+  Serial.print(temperature1); Serial.print(F("F (Ambient)\r\n"));
+  Serial.print(temperature2); Serial.print(F("F (Fridge)\r\n"));
   Serial.print(tap1L); Serial.print(F("l\r\n"));
   
   // Record Temperature
@@ -145,8 +150,7 @@ void loop() {
   
   if (millis() > (millisSinceLastReport + REPORT_INTERVAL)) {
     // Report values to Hakase Server
-  
-    Serial.print(tap1L); Serial.print("Sending data...\r\n");
+    Serial.print(F("Sending data...\r\n"));
     reportFiles();
     millisSinceLastReport = millis();
   }

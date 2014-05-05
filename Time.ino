@@ -38,9 +38,16 @@ unsigned long
   lastPolledTime  = 0L, // Last value retrieved from time server
   sketchTime      = 0L; // CPU milliseconds since last server query
 
+void initTime() {
+  setSyncProvider(getNtpTime);
+  setSyncInterval(NTP_INTERVAL);
+}
+
 // Minimalist time server query; adapted from Adafruit Gutenbird sketch,
 // which in turn has roots in Arduino UdpNTPClient tutorial.
 time_t getNtpTime(void) {
+  
+  return 1;
   
   Adafruit_CC3000_Client client;
   Adafruit_CC3000* cc3000 = getCC3000();
@@ -48,7 +55,7 @@ time_t getNtpTime(void) {
   uint8_t       buf[48];
   unsigned long ip, startTime, t = 0L;
 
-  Serial.print(F("Locating time server..."));
+  Serial.print(F("time"));
 
   // Hostname to IP lookup; use NTP pool (rotates through servers)
   if(cc3000->getHostByName(NTP_SERVER, &ip)) {
@@ -56,25 +63,19 @@ time_t getNtpTime(void) {
       timeReqA[] = { 227,  0,  6, 236 },
       timeReqB[] = {  49, 78, 49,  52 };
 
-    Serial.println(F("\r\nAttempting connection..."));
-    cc3000->printIPdotsRev(ip);
-    
     startTime = millis();
-    do {
-      client = cc3000->connectUDP(ip, 123);
-    } while((!client.connected()) &&
+    client = cc3000->connectUDP(ip, 123);
+    
+    while((!client.connected()) &&
             ((millis() - startTime) < connectTimeout));
 
     if(client.connected()) {
-      Serial.print(F("connected!\r\nIssuing request..."));
-
       // Assemble and issue request packet
       memset(buf, 0, sizeof(buf));
       memcpy_P( buf    , timeReqA, sizeof(timeReqA));
       memcpy_P(&buf[12], timeReqB, sizeof(timeReqB));
       client.write(buf, sizeof(buf));
 
-      Serial.print(F("\r\nAwaiting response..."));
       memset(buf, 0, sizeof(buf));
       startTime = millis();
       while((!client.available()) &&
@@ -85,12 +86,13 @@ time_t getNtpTime(void) {
              ((unsigned long)buf[41] << 16) |
              ((unsigned long)buf[42] <<  8) |
               (unsigned long)buf[43]) - NTP_TO_UNIX;
-        Serial.print(F("OK\r\n"));
+        Serial.print(t);
+        Serial.print(OK_MSG);
       }
       client.close();
     }
   }
-  if(!t) Serial.println(F("error"));
+  if(!t) Serial.println(FAIL_MSG);
   return t;
 }
 

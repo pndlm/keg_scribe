@@ -1,12 +1,13 @@
 
+/* scope used to save space */
+char cbBuf[11 * sizeof (int) + 1];
 
 /*
  * Write an unsigned number to file
  */
 int cbPrintInt(char* buf, int n, int pad) {
-  char b[8 * sizeof (int) + 1];
-  itoa(n,b,10);
-  byte l = strlen(b);
+  itoa(n,cbBuf,10);
+  byte l = strlen(cbBuf);
   if (l < pad) {
     pad -= l;
     memset(buf, '0', pad);
@@ -14,7 +15,8 @@ int cbPrintInt(char* buf, int n, int pad) {
   } else {
     pad = 0;
   }
-  memcpy(&buf[pad], b, l+1);
+  memcpy(&buf[pad], cbBuf, l+1);
+  
   return (l+pad);
 }
 
@@ -25,14 +27,13 @@ int cbPrintInt(char* buf, int n) {
 /*
  * Write an unsigned number to file
  */
-int cbPrintULong(char* buf, unsigned long n) {
-  char b[16 * sizeof (int) + 1];
-  ultoa(n,b,10);
-  int l = strlen(b);
-  
-  memcpy(buf, b, l+1);
-  return l;
+/*
+int cbPrintULong(char* buf, unsigned long n, int pad) {
+  ultoa(n,cbBuf,10);
+  return 0;
+  //return cbPrintBuf(buf, n, pad);
 }
+*/
 
 // provide a string buffer of at least 20 characters
 // the buffer will be filled like: ####.####
@@ -46,9 +47,11 @@ int sprintFloat(char* buffer, float value) {
   return offset;
 }
 
+/*
 int sprintTimeStamp(char* buffer, time_t t) {
-  return cbPrintULong(buffer, t);
+  return cbPrintULong(buffer, t, 0);
 }
+*/
 
 // provide a string buffer of at least 20 characters
 // the buffer will be filled like: 2012-03-29T17:00:00

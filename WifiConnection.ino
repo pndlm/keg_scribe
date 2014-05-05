@@ -28,16 +28,15 @@ void initWifi() {
   Serial.print(OK_MSG);
   
   /* Wait for DHCP to complete */
-  Serial.print(F("dhcp"));
-  while (!cc3000.checkDHCP())
+  do
   {
-    delay(100); // ToDo: Insert a DHCP timeout!
-  }  
+    delay(CC3000_DELAY); // ToDo: Insert a DHCP timeout!
+  } while (!cc3000.checkDHCP()); 
 
   /* Display the IP address DNS, Gateway, etc. */  
-  while (! displayConnectionDetails()) {
-    delay(1000);
-  }
+  //while (! displayConnectionDetails()) {
+  //  delay(1000);
+  //}
   
 }
 
