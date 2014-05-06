@@ -1,3 +1,7 @@
+/*
+Functions to initialize the Wifi connection
+and lookup the web server IP address.
+*/
 
 // These are the interrupt and control pins
 #define ADAFRUIT_CC3000_IRQ   3  // MUST be an interrupt pin!
@@ -30,7 +34,7 @@ void initWifi() {
   /* Wait for DHCP to complete */
   do
   {
-    delay(CC3000_DELAY); // ToDo: Insert a DHCP timeout!
+    delay(100); // ToDo: Insert a DHCP timeout!
   } while (!cc3000.checkDHCP()); 
 
   /* Display the IP address DNS, Gateway, etc. */  

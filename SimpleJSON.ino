@@ -1,4 +1,18 @@
 /*
+Functions to report data as JSON format to
+to a web server.
+
+This code is a bit outdated, but I am leaving
+it as an example if someone wants to use it.
+The downside is that it does not store data
+on an SD card so network failures result
+in data loss.
+
+It is also more complicated to append to a JSON
+file on an SD card, so I opted to use CSV instead.
+*/
+
+/*
 
 char* createJSONString(char importCode[], char utcTimeStamp[], float value) {
   char* result = new char[strlen(importCode) + strlen(utcTimeStamp) + 100];

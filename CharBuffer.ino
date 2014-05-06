@@ -1,3 +1,8 @@
+/*
+Utility functions used to write values
+to character buffers for string output.
+*/
+
 
 /* scope used to save space */
 char cbBuf[11 * sizeof (int) + 1];

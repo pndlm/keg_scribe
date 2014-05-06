@@ -1,4 +1,6 @@
-
+/*
+Functions to read data from the temperature sensors
+*/
 
 float readTemperatureF(int sensorPin) {
   int reading = analogRead(sensorPin);  

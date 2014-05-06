@@ -1,3 +1,14 @@
+/*
+Functions to write a CSV file to an SD card,
+read those files from the SD card, and
+report the files with HTTP POST multipart form
+to a web server.
+I used Fat16lib to access the SD card due to
+the small memory footprint it requires.
+
+See https://code.google.com/p/fat16lib/ for details.
+*/
+
 SdCard card;
 Fat16 file;
 

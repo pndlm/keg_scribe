@@ -7,37 +7,33 @@ to the repository.
 
 /*
 
-// Add it and put the following defines in it:
-#define WLAN_SSID       "Mai Wifu"           // cannot be longer than 32 characters!
-#define WLAN_PASS       "Mai Wifu Password"
-// Security can be WLAN_SEC_UNSEC, WLAN_SEC_WEP, WLAN_SEC_WPA or WLAN_SEC_WPA2
-#define WLAN_SECURITY   WLAN_SEC_WPA2
+// Fill this with your Wifi Credentials
+#define WLAN_SSID           "Mai Wifu"           // cannot be longer than 32 characters!
+#define WLAN_PASS           "Mai Wifu Password"
+#define WLAN_SECURITY       WLAN_SEC_WPA2
 
-// Comma, separated, hard coded IP of the Hakase Server
 #define USE_HARD_CODED_IP   true
 #define HARD_CODED_IP       172, 16, 25, 63
+//#define HARD_CODED_IP     10, 0, 1, 9
 
 // change this to match your SD shield or module;
 //     Arduino Ethernet shield: pin 4
 //     Adafruit SD shields and modules: pin 10
 //     Sparkfun SD shield: pin 8
-#define SD_CHIP_SELECT_PIN       4
+#define SD_CHIP_SELECT_PIN  4
 
-// When not using a hard coded IP, use this address:
-#define WEBSITE      "my.hakase.server.com"
+// Webserver Address
+#define WEBSITE             "my.webserver.com"
 
-// Use this path to report data on the Hakase server
-#define CSV_WEBPAGE      "/import/simpleCSV"
-#define JSON_WEBPAGE      "/import/simpleJSON"
+// NTP Server Address
+#define NTP_SERVER          "pool.ntp.org"
 
-#define IDLE_TIMEOUT_MS  3000      // Amount of time to wait (in milliseconds) with no data 
-                                   // received before closing the connection.  If you know the server
-                                   // you're accessing is quick to respond, you can reduce this value.
-                                   
-// change this to match your SD shield or module;
-//     Arduino Ethernet shield: pin 4
-//     Adafruit SD shields and modules: pin 10
-//     Sparkfun SD shield: pin 8
-const int chipSelect = 4;                                   
+// Path on the Server to report to
+#define CSV_WEBPAGE         "/import/simpleCSV"
+#define JSON_WEBPAGE        "/import/simpleJSON"
+
+#define IDLE_TIMEOUT_MS     3000      // Amount of time to wait (in milliseconds) with no data 
+                                      // received before closing the connection.  If you know the server
+                                      // you're accessing is quick to respond, you can reduce this value.                               
 
 */
