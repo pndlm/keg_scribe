@@ -101,7 +101,7 @@ bool reportFile(Fat16* file) {
   /* Try connecting to the website.
      Note: HTTP/1.1 protocol is used to keep the server from closing the connection before all data is read.
   */
-  Serial.print(F("tcp "));
+  Serial.print(F("http"));
   Adafruit_CC3000_Client www = cc3000->connectTCP(ip, 80);
         
   // calculate the content-length in bytes
@@ -128,20 +128,11 @@ bool reportFile(Fat16* file) {
     www.fastrprint(FORM_BOUNDARY_START);
     www.fastrprint(FILE_HEADER);
     
-    int16_t c;
-    while ((c = file->read()) > 0) {
-      www.write(&c, 1, 0);
+    uint16_t n;    
+    char buf[64];
+    while ((n = uint16_t(file->read(&buf, sizeof(buf)))) > 0) {
+      www.write(buf, n, 0);
     }
-    
-    /*
-    int16_t n;    
-    uint8_t buf;// nothing special about 7, just a lucky number.
-    while ((n = file.read(&buf, sizeof(buf))) >= 0) {
-      for (uint8_t i = 0; i < n; i++) Serial.write(buf[i]);
-      Serial.print(buf);
-      www.write(&buf, 1, 0);
-    }
-    */
     
     www.fastrprint(F("\r\n"));
     www.fastrprint(FORM_BOUNDARY_END);
