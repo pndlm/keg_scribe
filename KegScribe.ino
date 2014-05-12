@@ -53,36 +53,28 @@ void setup() {
   initTime();
 }
 
-// start at -1*INTERVAL so we always report/record at startup
-unsigned long millisSinceLastReport = -1*REPORT_INTERVAL;
-unsigned long millisSinceLastRecord = -1*RECORD_INTERVAL;
+unsigned long millisSinceLastReport = 0;
 
 void loop() {
     
   // Get the current time
   time_t currentTime = now();
   
-  // handle rollover of millis (after about 49 days)
-  // by just reseting our last record time
-  if (millis() < millisSinceLastRecord || millis() < millisSinceLastReport) {
-    millisSinceLastRecord = 0;
-    millisSinceLastReport = 0;
+  Serial.print(F("\r\n"));
+
+  // Record Temperature
+  recordValue(TEMPERATURE1_IMPORT_CODE, &currentTime, readTemperatureF(TEMPERATURE1_ANALOG_PIN));
+  recordValue(TEMPERATURE2_IMPORT_CODE, &currentTime, readTemperatureF(TEMPERATURE2_ANALOG_PIN));
+  
+  // Report Tap 1 and reset the pulse count after a successful recording
+  if(!recordValue(TAP1_IMPORT_CODE, &currentTime, readFlowSensor())) {
+    resetFlowSensor();
   }
   
-  if (millis() > (millisSinceLastRecord + RECORD_INTERVAL)) {
-    
-    Serial.print(F("\r\n"));
-  
-    // Record Temperature
-    recordValue(TEMPERATURE1_IMPORT_CODE, &currentTime, readTemperatureF(TEMPERATURE1_ANALOG_PIN));
-    recordValue(TEMPERATURE2_IMPORT_CODE, &currentTime, readTemperatureF(TEMPERATURE2_ANALOG_PIN));
-    
-    // Report Tap 1 and reset the pulse count after a successful recording
-    if(!recordValue(TAP1_IMPORT_CODE, &currentTime, readFlowSensor())) {
-      resetFlowSensor();
-    }
-    
-    millisSinceLastRecord = millis();
+  // handle rollover of millis (after about 49 days)
+  // by just reseting our last report time
+  if (millis() < millisSinceLastReport) {
+    millisSinceLastReport = 0;
   }
   
   if (millis() > (millisSinceLastReport + REPORT_INTERVAL)) {
@@ -90,5 +82,7 @@ void loop() {
     reportFiles();
     millisSinceLastReport = millis();
   }
+  
+  delay(RECORD_INTERVAL);
   
 }

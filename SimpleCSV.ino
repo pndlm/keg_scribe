@@ -101,14 +101,14 @@ bool reportFile(Fat16* file) {
   /* Try connecting to the website.
      Note: HTTP/1.1 protocol is used to keep the server from closing the connection before all data is read.
   */
-  Serial.print(F("tcp connect"));
+  Serial.print(F("tcp "));
   Adafruit_CC3000_Client www = cc3000->connectTCP(ip, 80);
         
   // calculate the content-length in bytes
   uint32_t totalContentLength = 
     FORM_BOUNDARY_START_SIZE +
     FILE_HEADER_SIZE +
-    (uint32_t)file->fileSize() + 2 +// file data + crlf
+    (uint32_t)file->fileSize() + 2 + // file data + crlf
     FORM_BOUNDARY_END_SIZE;
   
   if (www.connected()) {
