@@ -24,10 +24,10 @@ const char FAIL_MSG[] = " fail.\r\n";
 
 // These are strings that uniquely identify
 // the different data feeds to our web server
-const char TEMPERATURE1_IMPORT_CODE[] = "KegScribeAmbientTemperature";
-const char TEMPERATURE2_IMPORT_CODE[] = "KegScribeFridgeTemperature";
-const char TAP1_IMPORT_CODE[]         = "KegScribeTap1";
-const char TAP2_IMPORT_CODE[]         = "KegScribeTap2";
+#define TEMPERATURE1_IMPORT_CODE "KegScribeAmbientTemperature"
+#define TEMPERATURE2_IMPORT_CODE "KegScribeFridgeTemperature"
+#define TAP1_IMPORT_CODE         "KegScribeTap1"
+#define TAP2_IMPORT_CODE         "KegScribeTap2"
 
 // number of milliseconds between recording to SD card
 #define RECORD_INTERVAL (1000UL*60UL*1UL)
