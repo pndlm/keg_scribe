@@ -56,9 +56,9 @@ volatile uint16_t pulses = 0;
 // track the state of the pulse pin
 volatile uint8_t lastflowpinstate;
 // you can try to keep time of how long it is between pulses
-volatile uint32_t lastflowratetimer = 0;
+//volatile uint32_t lastflowratetimer = 0;
 // and use that to calculate a flow rate
-volatile float flowrate;
+//volatile float flowrate;
 
 void initFlowSensor() {
   // LED off
@@ -76,7 +76,7 @@ SIGNAL(TIMER0_COMPA_vect) {
   uint8_t x = digitalRead(FLOWSENSOR1_DIGITAL_PIN);
   
   if (x == lastflowpinstate) {
-    lastflowratetimer++;
+    //lastflowratetimer++;
     digitalWrite(FLOWSENSOR_LED_DIGITAL_PIN, LOW);
     return; // nothing changed!
   }
@@ -89,10 +89,10 @@ SIGNAL(TIMER0_COMPA_vect) {
   }
     
   lastflowpinstate = x;
-  flowrate = 1000.0;
-  flowrate /= lastflowratetimer;  // in hertz
+  //flowrate = 1000.0;
+  //flowrate /= lastflowratetimer;  // in hertz
   
-  lastflowratetimer = 0;
+  //lastflowratetimer = 0;
 }
 
 void useInterrupt(boolean v) {
