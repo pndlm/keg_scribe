@@ -33,14 +33,16 @@ the current timestamp.
 //	bool	 isdst;  ///< Daylight savings time flag, currently not supported	
 //NetTime_t timeExtract;
 
-
-const unsigned long
-  connectTimeout  = 15L * 1000L, // Max time to wait for server connection
-  responseTimeout = 15L * 1000L; // Max time to wait for data from server
+// Max time to wait for server connection
+#define connectTimeout  (15L * 1000L)
+// Max time to wait for data from server
+#define responseTimeout (15L * 1000L) 
   
+/*
 unsigned long
   lastPolledTime  = 0L, // Last value retrieved from time server
   sketchTime      = 0L; // CPU milliseconds since last server query
+*/
 
 void initTime() {
   setSyncProvider(getNtpTime);

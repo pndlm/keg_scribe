@@ -3,10 +3,6 @@ Utility functions used to write values
 to character buffers for string output.
 */
 
-
-/* scope used to save space */
-char cbBuf[11 * sizeof (int) + 1];
-
 /*
  * Write an integer to a character buffer
  * the buffer will be padded with `pad`
@@ -16,6 +12,7 @@ char cbBuf[11 * sizeof (int) + 1];
  * be manually added.
  */
 byte cbPrintInt(char* buf, int n, int pad) {
+  char cbBuf[12];
   itoa(n,cbBuf,10);
   byte l = strlen(cbBuf);
   if (l < pad) {
