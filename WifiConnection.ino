@@ -24,23 +24,32 @@ void initWifi() {
   }
   Serial.print(OK_MSG);
   
-  Serial.print(F("ssid ")); Serial.print(WLAN_SSID);
-  if (!cc3000.connectToAP(WLAN_SSID, WLAN_PASS, WLAN_SECURITY)) {
-    Serial.print(FAIL_MSG);
-    while(1);
-  }
-  Serial.print(OK_MSG);
+  ensureWifiConnection();
   
-  /* Wait for DHCP to complete */
-  do
-  {
-    delay(100); // ToDo: Insert a DHCP timeout!
-  } while (!cc3000.checkDHCP()); 
+}
 
-  /* Display the IP address DNS, Gateway, etc. */  
-  //while (! displayConnectionDetails()) {
-  //  delay(1000);
-  //}
+void ensureWifiConnection() {
+  
+  if (!cc3000.checkConnected()) {
+  
+    Serial.print(F("ssid ")); Serial.print(WLAN_SSID);
+    if (!cc3000.connectToAP(WLAN_SSID, WLAN_PASS, WLAN_SECURITY)) {
+      Serial.print(FAIL_MSG);
+      while(1);
+    }
+    Serial.print(OK_MSG);
+    
+    /* Wait for DHCP to complete */
+    do
+    {
+      delay(100); // ToDo: Insert a DHCP timeout!
+    } while (!cc3000.checkDHCP()); 
+  
+    /* Display the IP address DNS, Gateway, etc. */  
+    //while (! displayConnectionDetails()) {
+    //  delay(1000);
+    //}
+  }
   
 }
 

@@ -92,6 +92,8 @@ bool recordValue(const char importCode[], time_t* t, float ptrValue) {
 bool reportFile(Fat16* file) {
   Adafruit_CC3000* cc3000 = getCC3000();
   
+  ensureWifiConnection();
+  
   uint32_t ip = getWebServerIP(cc3000);
   
   if (ip == 0) {
