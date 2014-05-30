@@ -86,18 +86,42 @@ Adafruit_CC3000* getCC3000() {
   return &cc3000;
 }
 
-uint32_t getWebServerIP(Adafruit_CC3000* cc3000) {
+uint32_t getPrimaryServerIP(Adafruit_CC3000* cc3000) {
   uint32_t ip = 0;
   
-  #if USE_HARD_CODED_IP
+  #if USE_HARD_CODED_IP_PRIMARY
     Serial.print(F("fixed ip "));
-    ip = cc3000->IP2U32(HARD_CODED_IP);
+    ip = cc3000->IP2U32(HARD_CODED_IP_PRIMARY);
   #else
     // Try looking up the website's IP address
     if (ip == 0) {
       Serial.print(F("nslookup "));
-      Serial.print(WEBSITE);
-      if (! cc3000->getHostByName(WEBSITE, &ip)) {
+      Serial.print(PRIMARY_SERVER);
+      if (! cc3000->getHostByName(PRIMARY_SERVER, &ip)) {
+        Serial.print(FAIL_MSG);
+        return 0;
+      }
+    }
+  #endif
+  
+  cc3000->printIPdotsRev(ip);
+  Serial.print(F("\r\n"));
+  
+  return ip;
+}
+
+uint32_t getSecondaryServerIP(Adafruit_CC3000* cc3000) {
+  uint32_t ip = 0;
+  
+  #if USE_HARD_CODED_IP_SECONDARY
+    Serial.print(F("fixed ip "));
+    ip = cc3000->IP2U32(HARD_CODED_IP_SECONDARY);
+  #else
+    // Try looking up the website's IP address
+    if (ip == 0) {
+      Serial.print(F("nslookup "));
+      Serial.print(SECONDARY_SERVER);
+      if (! cc3000->getHostByName(SECONDARY_SERVER, &ip)) {
         Serial.print(FAIL_MSG);
         return 0;
       }

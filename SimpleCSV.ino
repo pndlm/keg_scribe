@@ -89,12 +89,11 @@ bool recordValue(const char importCode[], time_t* t, float ptrValue) {
   return 0;
 }
 
-bool reportFile(Fat16* file) {
+bool reportFile(Fat16* file, uint32_t ip) {
+  
   Adafruit_CC3000* cc3000 = getCC3000();
   
   ensureWifiConnection();
-  
-  uint32_t ip = getWebServerIP(cc3000);
   
   if (ip == 0) {
     return 1;
@@ -118,7 +117,7 @@ bool reportFile(Fat16* file) {
     www.fastrprint(CSV_WEBPAGE);
     www.fastrprint(F(" HTTP/1.1"));
     www.fastrprint(F("\r\nHost: "));
-    www.fastrprint(WEBSITE);
+    www.fastrprint(SECONDARY_SERVER);
     www.fastrprint(F("\r\nAuthorization: Basic a2Vnc2NyaWJlOnRlc3Q="));
     www.fastrprint(F("\r\nContent-Length: "));
     www.print(totalContentLength);
@@ -174,6 +173,14 @@ void reportFiles() {
   dir_t dir;
   char filename[13];
   uint16_t index = 0;
+  
+  Adafruit_CC3000* cc3000 = getCC3000();
+  
+  ensureWifiConnection();
+  
+  uint32_t primaryIP = getPrimaryServerIP(cc3000);
+  uint32_t secondaryIP = getSecondaryServerIP(cc3000);
+  
   for (uint16_t index = 0; file.readDir(&dir, &index, DIR_ATT_VOLUME_ID); index++) {
     
     if (!DIR_IS_FILE(&dir)) {
@@ -199,11 +206,20 @@ void reportFiles() {
     }
     
     Serial.print(OK_MSG);
-   
-    if(reportFile(&file) == 0) {
+ 
+    // try to report to secondary
+    // but don't care if it fails   
+    Serial.print("srv2 ");
+    Serial.print(reportFile(&file, secondaryIP) == 0 ? OK_MSG : FAIL_MSG);
+
+    Serial.print("srv1 ");    
+    if(reportFile(&file, primaryIP) == 0) {
       // successfully sent the data
       // so we can remove this file
       file.remove(filename);
+      Serial.print(OK_MSG);
+    } else {
+      Serial.print(FAIL_MSG);
     }
     
     file.close();

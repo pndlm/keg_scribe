@@ -12,9 +12,10 @@ to the repository.
 #define WLAN_PASS           "Mai Wifu Password"
 #define WLAN_SECURITY       WLAN_SEC_WPA2
 
-#define USE_HARD_CODED_IP   true
-#define HARD_CODED_IP       172, 16, 25, 63
-//#define HARD_CODED_IP     10, 0, 1, 9
+#define USE_HARD_CODED_IP_PRIMARY    true
+#define HARD_CODED_IP_PRIMARY        172, 16, 25, 63
+#define USE_HARD_CODED_IP_SECONDARY  false
+#define HARD_CODED_IP_SECONDARY      10, 0, 0, 1
 
 // change this to match your SD shield or module;
 //     Arduino Ethernet shield: pin 4
@@ -23,7 +24,8 @@ to the repository.
 #define SD_CHIP_SELECT_PIN  4
 
 // Webserver Address
-#define WEBSITE             "my.webserver.com"
+#define PRIMARY_SERVER             "server1.webserver.com"
+#define SECONDARY_SERVER           "server2.webserver.com"
 
 // NTP Server Address
 #define NTP_SERVER          "pool.ntp.org"

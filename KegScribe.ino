@@ -30,10 +30,10 @@ const char FAIL_MSG[] = " fail.\r\n";
 #define TAP2_IMPORT_CODE         "KegScribeTap2"
 
 // number of milliseconds between recording to SD card
-#define RECORD_INTERVAL (1000UL*60UL*1UL)
+#define RECORD_INTERVAL (1000UL*60UL*5UL)
 
 // number of milliseconds between reports to the web server
-#define REPORT_INTERVAL (1000UL*60UL*5UL)
+#define REPORT_INTERVAL (1000UL*60UL*1UL)
 
 // number of seconds between calls to the NTP server
 #define NTP_INTERVAL    (60*60*24)
