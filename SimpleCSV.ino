@@ -89,7 +89,7 @@ bool recordValue(const char importCode[], time_t* t, float ptrValue) {
   return 0;
 }
 
-bool reportFile(Fat16* file, uint32_t ip) {
+bool reportFile(Fat16* file, uint32_t ip, char* hostname) {
   
   Adafruit_CC3000* cc3000 = getCC3000();
   
@@ -117,7 +117,7 @@ bool reportFile(Fat16* file, uint32_t ip) {
     www.fastrprint(CSV_WEBPAGE);
     www.fastrprint(F(" HTTP/1.1"));
     www.fastrprint(F("\r\nHost: "));
-    www.fastrprint(SECONDARY_SERVER);
+    www.fastrprint(hostname);
     www.fastrprint(F("\r\nAuthorization: Basic a2Vnc2NyaWJlOnRlc3Q="));
     www.fastrprint(F("\r\nContent-Length: "));
     www.print(totalContentLength);
@@ -210,10 +210,12 @@ void reportFiles() {
     // try to report to secondary
     // but don't care if it fails   
     Serial.print("srv2 ");
-    Serial.print(reportFile(&file, secondaryIP) == 0 ? OK_MSG : FAIL_MSG);
+    Serial.print(reportFile(&file, secondaryIP, SECONDARY_SERVER) == 0 ? OK_MSG : FAIL_MSG);
+    
+    file.rewind();
 
     Serial.print("srv1 ");    
-    if(reportFile(&file, primaryIP) == 0) {
+    if(reportFile(&file, primaryIP, PRIMARY_SERVER) == 0) {
       // successfully sent the data
       // so we can remove this file
       file.remove(filename);
