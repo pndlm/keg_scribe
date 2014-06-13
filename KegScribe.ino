@@ -4,6 +4,7 @@
 #include <SPI.h>
 #include <Fat16.h>
 #include <Fat16util.h>
+#include <avr/wdt.h>
 
 // for a smaller footprint
 #define SERIAL_BUFFER_SIZE 32
@@ -51,11 +52,19 @@ void setup() {
   initFlowSensor();
   initWifi();
   initTime();
+
+  // Tell watchdog to reset the device if we
+  // haven't reported every 8 seconds
+  // wdt_enable(WDTO_8S);
+
 }
 
 unsigned long millisSinceLastReport = 0;
 
 void loop() {
+  
+  // we are still alive!
+  wdt_reset();
     
   // Get the current time
   time_t currentTime = now();

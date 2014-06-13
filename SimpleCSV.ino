@@ -212,6 +212,9 @@ void reportFiles() {
     Serial.print("srv2 ");
     Serial.print(reportFile(&file, secondaryIP, SECONDARY_SERVER) == 0 ? OK_MSG : FAIL_MSG);
     
+    // http post can take awhile, we are still alive!
+    wdt_reset();
+    
     file.rewind();
 
     Serial.print("srv1 ");    
@@ -223,6 +226,9 @@ void reportFiles() {
     } else {
       Serial.print(FAIL_MSG);
     }
+    
+    // http post can take awhile, we are still alive!
+    wdt_reset();
     
     file.close();
     

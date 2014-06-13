@@ -42,6 +42,9 @@ boolean ensureWifiConnection() {
     /* Wait for DHCP to complete */
     do
     {
+      // we are still alive!
+      wdt_reset();
+      
       delay(100); // ToDo: Insert a DHCP timeout!
     } while (!cc3000.checkDHCP()); 
   
