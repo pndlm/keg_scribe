@@ -28,14 +28,14 @@ void initWifi() {
   
 }
 
-void ensureWifiConnection() {
+boolean ensureWifiConnection() {
   
   if (!cc3000.checkConnected()) {
   
     Serial.print(F("ssid ")); Serial.print(WLAN_SSID);
     if (!cc3000.connectToAP(WLAN_SSID, WLAN_PASS, WLAN_SECURITY)) {
       Serial.print(FAIL_MSG);
-      while(1);
+      return false;
     }
     Serial.print(OK_MSG);
     
@@ -49,6 +49,8 @@ void ensureWifiConnection() {
     //while (! displayConnectionDetails()) {
     //  delay(1000);
     //}
+    
+    return true;
   }
   
 }

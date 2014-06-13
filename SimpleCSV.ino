@@ -93,9 +93,7 @@ bool reportFile(Fat16* file, uint32_t ip, char* hostname) {
   
   Adafruit_CC3000* cc3000 = getCC3000();
   
-  ensureWifiConnection();
-  
-  if (ip == 0) {
+  if (!ensureWifiConnection() || ip == 0) {
     return 1;
   }
   
@@ -176,7 +174,9 @@ void reportFiles() {
   
   Adafruit_CC3000* cc3000 = getCC3000();
   
-  ensureWifiConnection();
+  if(!ensureWifiConnection()) {
+    return;
+  }
   
   uint32_t primaryIP = getPrimaryServerIP(cc3000);
   uint32_t secondaryIP = getSecondaryServerIP(cc3000);
