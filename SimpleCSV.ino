@@ -110,6 +110,10 @@ bool reportFile(Fat16* file, uint32_t ip, char* hostname) {
     (uint32_t)file->fileSize() + 2 + // file data + crlf
     FORM_BOUNDARY_END_SIZE;
   
+  char totalContentLengthString[12];
+  byte length = cbPrintInt(totalContentLengthString, (int)totalContentLength, 0);
+  totalContentLengthString[length] = '\0';
+  
   if (www.connected()) {
     www.fastrprint(F("POST "));
     www.fastrprint(CSV_WEBPAGE);
@@ -118,7 +122,7 @@ bool reportFile(Fat16* file, uint32_t ip, char* hostname) {
     www.fastrprint(hostname);
     www.fastrprint(F("\r\nAuthorization: Basic a2Vnc2NyaWJlOnRlc3Q="));
     www.fastrprint(F("\r\nContent-Length: "));
-    www.print(totalContentLength);
+    www.fastrprint(totalContentLengthString);
     www.fastrprint(F("\r\nContent-Type: multipart/form-data; boundary="));
     www.fastrprint(FORM_BOUNDARY_BASE);
     www.fastrprint(F("\r\n"));
