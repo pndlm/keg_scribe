@@ -21,7 +21,8 @@ Fat16 file;
 #define FILE_HEADER              F("Content-Disposition: form-data; name=\"file\"; filename=\"f.csv\"\r\nContent-Type: text/csv\r\n\r\n")
 #define FILE_HEADER_SIZE         89 //       '         '         '          '          '          '            '         '            9
 
-#define SUCCESS_RESPONSE_SIZE    17
+#define SUCCESS_RESPONSE         "HTTP/1.1 200 OK\r\n"
+#define SUCCESS_RESPONSE_SIZE    16
 
 void initSD() {
   pinMode(SD_CHIP_SELECT_PIN, OUTPUT);
@@ -144,8 +145,9 @@ bool reportFile(Fat16* file, uint32_t ip, char* hostname) {
       // read to the first white space
       while (www.available()) {
         char c = www.read();
-        if (i <= 15) {
-          if (c != "HTTP/1.1 200 OK\r\n"[i++]) {
+        if (i < SUCCESS_RESPONSE_SIZE) {
+          Serial.print(SUCCESS_RESPONSE[i]);
+          if (c != SUCCESS_RESPONSE[i++]) {
             Serial.print(FAIL_MSG);
             www.close();
             return 1;
