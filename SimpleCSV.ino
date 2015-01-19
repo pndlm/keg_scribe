@@ -13,14 +13,13 @@ SdCard card;
 Fat16 file;
 
 #define FORM_BOUNDARY_BASE       F("KSFile")
-#define FORM_BOUNDARY            F("--KSFile")
 #define FORM_BOUNDARY_END        F("--KSFile--\r\n")
-#define FORM_BOUNDARY_END_SIZE   22
+#define FORM_BOUNDARY_END_SIZE   12
 #define FORM_BOUNDARY_START      F("--KSFile\r\n")
-#define FORM_BOUNDARY_START_SIZE 20 
+#define FORM_BOUNDARY_START_SIZE 10
 
 #define FILE_HEADER              F("Content-Disposition: form-data; name=\"file\"; filename=\"f.csv\"\r\nContent-Type: text/csv\r\n\r\n")
-#define FILE_HEADER_SIZE         96
+#define FILE_HEADER_SIZE         89 //       '         '         '          '          '          '            '         '            9
 
 #define SUCCESS_RESPONSE_SIZE    17
 
