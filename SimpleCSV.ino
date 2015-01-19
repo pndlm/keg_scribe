@@ -61,8 +61,8 @@ bool recordValue(const char importCode[], time_t* t, float ptrValue) {
   //Serial.print(F("write "));
   //Serial.print(filename);
   
-  Serial.print(timestamp); Serial.print(F(" ")); Serial.print(valueString); 
-  Serial.print(F(" (")); Serial.print(importCode); Serial.print(F(")\r\n"));
+  Serial.print(timestamp); Serial.print(' '); Serial.print(valueString); 
+  Serial.print(' '); Serial.print(importCode); Serial.print(NEWLINE_MSG);
   
   // O_CREAT - create the file if it does not exist
   // O_WRITE - open for write
