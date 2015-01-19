@@ -52,43 +52,49 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 **********************************************************/
 
 // count how many pulses!
-volatile uint16_t pulses = 0;
+volatile uint16_t pulses[2] = {0,0};
 // track the state of the pulse pin
-volatile uint8_t lastflowpinstate;
+volatile uint8_t lastflowpinstate[2];
+
 // you can try to keep time of how long it is between pulses
 //volatile uint32_t lastflowratetimer = 0;
 // and use that to calculate a flow rate
 //volatile float flowrate;
 
-void initFlowSensor() {
+void initFlowSensor(byte flowSensorIndex) {
   // LED off
+  byte pin = flowSensorPin[flowSensorIndex];
+  
   pinMode(FLOWSENSOR_LED_DIGITAL_PIN, OUTPUT);
   digitalWrite(FLOWSENSOR_LED_DIGITAL_PIN, LOW);
   
-  pinMode(FLOWSENSOR1_DIGITAL_PIN, INPUT);
-  digitalWrite(FLOWSENSOR1_DIGITAL_PIN, HIGH);
-  lastflowpinstate = digitalRead(FLOWSENSOR1_DIGITAL_PIN);
+  pinMode(pin, INPUT);
+  digitalWrite(pin, HIGH);
+  lastflowpinstate[flowSensorIndex] = digitalRead(pin);
   useInterrupt(true);
 }
 
 // Interrupt is called once a millisecond, looks for any pulses from the sensor!
 SIGNAL(TIMER0_COMPA_vect) {
-  uint8_t x = digitalRead(FLOWSENSOR1_DIGITAL_PIN);
   
-  if (x == lastflowpinstate) {
-    //lastflowratetimer++;
-    digitalWrite(FLOWSENSOR_LED_DIGITAL_PIN, LOW);
-    return; // nothing changed!
-  }
-  
-  digitalWrite(FLOWSENSOR_LED_DIGITAL_PIN, HIGH);
-  
-  if (x == HIGH) {
-    //low to high transition!
-    pulses++;
-  }
+  for(byte i = 0; i < sizeof(flowSensorPin); i++) {
     
-  lastflowpinstate = x;
+    uint8_t x = digitalRead(flowSensorPin[i]);
+  
+    if (x == lastflowpinstate[i]) {
+      digitalWrite(FLOWSENSOR_LED_DIGITAL_PIN, LOW);
+      return; // nothing changed!
+    }
+  
+    digitalWrite(FLOWSENSOR_LED_DIGITAL_PIN, HIGH);
+  
+    if (x == HIGH) {
+      //low to high transition!
+      pulses[i]++;
+    }
+    
+    lastflowpinstate[i] = x;
+  }
   //flowrate = 1000.0;
   //flowrate /= lastflowratetimer;  // in hertz
   
@@ -108,13 +114,13 @@ void useInterrupt(boolean v) {
 }
 
 /* returns the amount of flowed liquid in liters */
-float readFlowSensor() {
+float readFlowSensor(byte flowSensorIndex) {
   // if a plastic sensor use the following calculation
   // Sensor Frequency (Hz) = 7.5 * Q (Liters/min)
   // Liters = Q * time elapsed (seconds) / 60 (seconds/minute)
   // Liters = (Frequency (Pulses/second) / 7.5) * time elapsed (seconds) / 60
   // Liters = Pulses / (7.5 * 60)
-  return ((pulses/7.5)/60.0);
+  return ((pulses[flowSensorIndex]/7.5)/60.0);
 
   /*
     // if a brass sensor use the following calculation
@@ -126,6 +132,6 @@ float readFlowSensor() {
 }
 
 /* Reset the flow sensor count */
-void resetFlowSensor() {
-  pulses = 0;
+void resetFlowSensor(byte flowSensorIndex) {
+  pulses[flowSensorIndex] = 0;
 }

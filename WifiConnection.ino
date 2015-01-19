@@ -107,7 +107,7 @@ uint32_t getPrimaryServerIP(Adafruit_CC3000* cc3000) {
   #endif
   
   cc3000->printIPdotsRev(ip);
-  Serial.print(F("\r\n"));
+  Serial.print(NEWLINE_MSG);
   
   return ip;
 }

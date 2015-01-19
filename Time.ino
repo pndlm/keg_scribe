@@ -59,7 +59,6 @@ time_t getNtpTime(void) {
   uint8_t       buf[48];
   unsigned long ip, startTime, t = 0L;
 
-  Serial.print(F("sntp "));
 
   // Hostname to IP lookup; use NTP pool (rotates through servers)
   if(cc3000->getHostByName(NTP_SERVER, &ip)) {

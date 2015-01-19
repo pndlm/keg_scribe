@@ -9,9 +9,12 @@
 #define SERIAL_BUFFER_SIZE 32
 
 // success and failure messages
+// and other reoccuring strings
 // used throughout the application
-const char OK_MSG[]   = " ok.\r\n";
-const char FAIL_MSG[] = " fail.\r\n";
+const char OK_MSG[]   = " ok\r\n";
+const char FAIL_MSG[] = " fail\r\n";
+const char NEWLINE_MSG[] = "\r\n";
+const char CSV_SEPARATOR = ',';
 
 // change these pin numbers to fit your needs
 // since we use the CC3000 Wifi Shield these
@@ -38,17 +41,48 @@ const char FAIL_MSG[] = " fail.\r\n";
 // number of seconds between calls to the NTP server
 #define NTP_INTERVAL    (60*60*24)
 
+// These arrays are used to define the
+// various sensor pins and import codes.
+// Do not change these arrays unless you
+// need to add additional sensors. Instead
+// modify the defines above.
+
+const byte tempSensorPin[2] = {
+  TEMPERATURE1_ANALOG_PIN,
+  TEMPERATURE2_ANALOG_PIN
+};
+
+const byte flowSensorPin[2] = {
+  FLOWSENSOR1_DIGITAL_PIN,
+  FLOWSENSOR2_DIGITAL_PIN
+};
+
+const char* tempSensorCode[2] = {
+  TEMPERATURE1_IMPORT_CODE,
+  TEMPERATURE2_IMPORT_CODE
+};
+
+const char* flowSensorCode[2] = {
+  TAP1_IMPORT_CODE,
+  TAP2_IMPORT_CODE
+};
+
 void setup() {
   Serial.begin(115200);
   Serial.print(F("KegScribe 1.1\r\n")); 
-  Serial.print(F("FreeRam: "));
-  Serial.print(FreeRam(), DEC);
-  Serial.print(F("\r\n"));
+  
+  //Serial.print(F("FreeRam: "));
+  //Serial.print(FreeRam(), DEC);
+  //Serial.print(NEWLINE_MSG);
   
   // Fat16 lib may need
   // to be inited first.
   initSD();
-  initFlowSensor();
+  
+  for(byte i = 0; i < sizeof(tempSensorPin); i++) {
+    initFlowSensor(i);
+  }
+  
   initWifi();
   initTime();
 }
@@ -60,15 +94,17 @@ void loop() {
   // Get the current time
   time_t currentTime = now();
   
-  Serial.print(F("\r\n"));
+  Serial.print(NEWLINE_MSG);
 
-  // Record Temperature
-  recordValue(TEMPERATURE1_IMPORT_CODE, &currentTime, readTemperatureF(TEMPERATURE1_ANALOG_PIN));
-  recordValue(TEMPERATURE2_IMPORT_CODE, &currentTime, readTemperatureF(TEMPERATURE2_ANALOG_PIN));
+  for(byte i = 0; i < sizeof(flowSensorPin); i++) {
+     recordValue(tempSensorCode[i], &currentTime, readTemperatureF(tempSensorPin[i]));
+  }
   
-  // Report Tap 1 and reset the pulse count after a successful recording
-  if(!recordValue(TAP1_IMPORT_CODE, &currentTime, readFlowSensor())) {
-    resetFlowSensor();
+  for(byte i = 0; i < sizeof(tempSensorPin); i++) {
+    // Report flow sensor values and reset the pulse count after a successful recording
+    if(!recordValue(flowSensorCode[i], &currentTime, readFlowSensor(i))) {
+      resetFlowSensor(0);
+    }
   }
   
   // handle rollover of millis (after about 49 days)

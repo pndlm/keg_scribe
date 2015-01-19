@@ -12,14 +12,14 @@ See https://code.google.com/p/fat16lib/ for details.
 SdCard card;
 Fat16 file;
 
-#define FORM_BOUNDARY_BASE       F("KegScribeCSVFile")
-#define FORM_BOUNDARY            F("--KegScribeCSVFile")
-#define FORM_BOUNDARY_END        F("--KegScribeCSVFile--\r\n")
+#define FORM_BOUNDARY_BASE       F("KSFile")
+#define FORM_BOUNDARY            F("--KSFile")
+#define FORM_BOUNDARY_END        F("--KSFile--\r\n")
 #define FORM_BOUNDARY_END_SIZE   22
-#define FORM_BOUNDARY_START      F("--KegScribeCSVFile\r\n")
+#define FORM_BOUNDARY_START      F("--KSFile\r\n")
 #define FORM_BOUNDARY_START_SIZE 20 
 
-#define FILE_HEADER              F("Content-Disposition: form-data; name=\"file\"; filename=\"filename.csv\"\r\nContent-Type: text/csv\r\n\r\n")
+#define FILE_HEADER              F("Content-Disposition: form-data; name=\"file\"; filename=\"f.csv\"\r\nContent-Type: text/csv\r\n\r\n")
 #define FILE_HEADER_SIZE         96
 
 #define SUCCESS_RESPONSE_SIZE    17
@@ -78,9 +78,9 @@ bool recordValue(const char importCode[], time_t* t, float ptrValue) {
     file.print(F("ImportCode,Timestamp,Value\r\n"));
   }
     
-  file.print(importCode); file.print(F(","));
-  file.print(timestamp); file.print(F(","));
-  file.print(valueString); file.print(F("\r\n"));
+  file.print(importCode); file.print(CSV_SEPARATOR);
+  file.print(timestamp); file.print(CSV_SEPARATOR);
+  file.print(valueString); file.print(NEWLINE_MSG);
   
   // close the file:
   file.close();
@@ -117,16 +117,14 @@ bool reportFile(Fat16* file, uint32_t ip, char* hostname) {
   if (www.connected()) {
     www.fastrprint(F("POST "));
     www.fastrprint(CSV_WEBPAGE);
-    www.fastrprint(F(" HTTP/1.1"));
-    www.fastrprint(F("\r\nHost: "));
+    www.fastrprint(F(" HTTP/1.1\r\nHost: "));
     www.fastrprint(hostname);
-    www.fastrprint(F("\r\nAuthorization: Basic a2Vnc2NyaWJlOnRlc3Q="));
-    www.fastrprint(F("\r\nContent-Length: "));
+    www.fastrprint(F("\r\nAuthorization: Basic a2Vnc2NyaWJlOnRlc3Q=\r\nContent-Length: "));
     www.fastrprint(totalContentLengthString);
     www.fastrprint(F("\r\nContent-Type: multipart/form-data; boundary="));
     www.fastrprint(FORM_BOUNDARY_BASE);
-    www.fastrprint(F("\r\n"));
-    www.fastrprint(F("\r\n"));
+    www.fastrprint(NEWLINE_MSG);
+    www.fastrprint(NEWLINE_MSG);
     
     www.fastrprint(FORM_BOUNDARY_START);
     www.fastrprint(FILE_HEADER);
@@ -137,7 +135,7 @@ bool reportFile(Fat16* file, uint32_t ip, char* hostname) {
       www.write(buf, n, 0);
     }
     
-    www.fastrprint(F("\r\n"));
+    www.fastrprint(NEWLINE_MSG);
     www.fastrprint(FORM_BOUNDARY_END);
     
     // Read data until either the connection is closed, or the idle timeout is reached.
