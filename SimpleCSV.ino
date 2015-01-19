@@ -181,7 +181,7 @@ void reportFiles() {
   }
   
   uint32_t primaryIP = getPrimaryServerIP(cc3000);
-  uint32_t secondaryIP = getSecondaryServerIP(cc3000);
+  //uint32_t secondaryIP = getSecondaryServerIP(cc3000);
   
   for (uint16_t index = 0; file.readDir(&dir, &index, DIR_ATT_VOLUME_ID); index++) {
     
@@ -211,10 +211,10 @@ void reportFiles() {
  
     // try to report to secondary
     // but don't care if it fails   
-    Serial.print("srv2 ");
-    Serial.print(reportFile(&file, secondaryIP, SECONDARY_SERVER) == 0 ? OK_MSG : FAIL_MSG);
+    //Serial.print("srv2 ");
+    //Serial.print(reportFile(&file, secondaryIP, SECONDARY_SERVER) == 0 ? OK_MSG : FAIL_MSG);
     
-    file.rewind();
+    //file.rewind();
 
     Serial.print("srv1 ");    
     if(reportFile(&file, primaryIP, PRIMARY_SERVER) == 0) {

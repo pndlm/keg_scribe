@@ -112,6 +112,7 @@ uint32_t getPrimaryServerIP(Adafruit_CC3000* cc3000) {
   return ip;
 }
 
+/*
 uint32_t getSecondaryServerIP(Adafruit_CC3000* cc3000) {
   uint32_t ip = 0;
   
@@ -135,4 +136,5 @@ uint32_t getSecondaryServerIP(Adafruit_CC3000* cc3000) {
   
   return ip;
 }
+*/
 
