@@ -33,10 +33,10 @@ const char  CSV_SEPARATOR = ',';
 #define TAP2_IMPORT_CODE         F("KegScribeTap2")
 
 // number of milliseconds between recording to SD card
-#define RECORD_INTERVAL (1000UL*60UL*5UL)
+#define RECORD_INTERVAL (1000UL*60UL*1UL)
 
 // number of milliseconds between reports to the web server
-#define REPORT_INTERVAL 0 // (1000UL*60UL*1UL)
+#define REPORT_INTERVAL (1000UL*60UL*1UL)
 
 // number of seconds between calls to the NTP server
 #define NTP_INTERVAL    (60*60*24)
