@@ -11,6 +11,7 @@ to character buffers for string output.
  * a null character is not written and must
  * be manually added.
  */
+ 
 byte cbPrintInt(char* buf, int n, int pad) {
   char cbBuf[12];
   itoa(n,cbBuf,10);
@@ -54,7 +55,8 @@ byte sprintTime(char* buffer, time_t* t, bool shortMode) {
   }
   
   // first copy our template
-  memcpy(buffer, "0000-00-00T00:00:00", 20);
+  memcpy_P(buffer, F("0000-00-00T00:00:00"), 20);
+  //memcpy(buffer, "0000-00-00T00:00:00", 20);
   cbPrintInt(buffer,      year(*t),   4);
   cbPrintInt(&buffer[5],  month(*t),  2);
   cbPrintInt(&buffer[8],  day(*t),    2);
@@ -68,7 +70,7 @@ byte sprintTime(char* buffer, time_t* t, bool shortMode) {
 // the buffer will be filled like: ########.CSV
 byte sprintFilename(char* buffer, time_t* t) {
   byte offset = sprintTime(buffer, t, true);
-  memcpy(&buffer[offset], ".CSV", 5);
+  memcpy_P(&buffer[offset], F(".CSV"), 5);
   offset += 5;
   return offset;
 }

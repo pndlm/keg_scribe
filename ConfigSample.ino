@@ -27,6 +27,9 @@ to the repository.
 #define PRIMARY_SERVER             "server1.webserver.com"
 #define SECONDARY_SERVER           "server2.webserver.com"
 
+// key to pass for HTTP Basic Authorization
+#define BASIC_AUTH_KEY        "somehashedkeygoeshere"
+
 // NTP Server Address
 #define NTP_SERVER          "pool.ntp.org"
 

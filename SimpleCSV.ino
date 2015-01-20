@@ -46,7 +46,7 @@ void initSD() {
   Serial.print(OK_MSG);
 }
 
-bool recordValue(const char importCode[], time_t* t, float ptrValue) {
+bool recordValue(const __FlashStringHelper importCode[], time_t* t, float ptrValue) {
   
   char filename[13];
   sprintFilename(filename, t);
@@ -89,7 +89,7 @@ bool recordValue(const char importCode[], time_t* t, float ptrValue) {
   return 0;
 }
 
-bool reportFile(Fat16* file, uint32_t ip, char* hostname) {
+bool reportFile(Fat16* file, uint32_t ip, const char* hostname) {
   
   Adafruit_CC3000* cc3000 = getCC3000();
   
@@ -100,29 +100,38 @@ bool reportFile(Fat16* file, uint32_t ip, char* hostname) {
   /* Try connecting to the website.
      Note: HTTP/1.1 protocol is used to keep the server from closing the connection before all data is read.
   */
-  Serial.print(F("http"));
   Adafruit_CC3000_Client www = cc3000->connectTCP(ip, 80);
-        
+  
   // calculate the content-length in bytes
   uint32_t totalContentLength = 
     FORM_BOUNDARY_START_SIZE +
     FILE_HEADER_SIZE +
     (uint32_t)file->fileSize() + 2 + // file data + crlf
     FORM_BOUNDARY_END_SIZE;
+    
+  boolean success = false;
   
-  char totalContentLengthString[12];
-  byte length = cbPrintInt(totalContentLengthString, (int)totalContentLength, 0);
-  totalContentLengthString[length] = '\0';
+  //char totalContentLengthString[12];
+  //byte length = cbPrintInt(totalContentLengthString, (int)totalContentLength, 0);
+  //totalContentLengthString[length] = '\0';
   
   if (www.connected()) {
+    
     www.fastrprint(F("POST "));
+    
     www.fastrprint(CSV_WEBPAGE);
+    
     www.fastrprint(F(" HTTP/1.1\r\nHost: "));
+    
     www.fastrprint(hostname);
-    www.fastrprint(F("\r\nAuthorization: Basic a2Vnc2NyaWJlOnRlc3Q=\r\nContent-Length: "));
-    www.fastrprint(totalContentLengthString);
+    
+    www.fastrprint(F("\r\nAuthorization: Basic " BASIC_AUTH_KEY "\r\nContent-Length: "));
+    //www.fastrprint(totalContentLengthString);
+    www.print(totalContentLength);
+    
     www.fastrprint(F("\r\nContent-Type: multipart/form-data; boundary="));
     www.fastrprint(FORM_BOUNDARY_BASE);
+    
     www.fastrprint(NEWLINE_MSG);
     www.fastrprint(NEWLINE_MSG);
     
@@ -140,27 +149,26 @@ bool reportFile(Fat16* file, uint32_t ip, char* hostname) {
     
     // Read data until either the connection is closed, or the idle timeout is reached.
     byte i = 0;
+    
+    success = true;
+    
     unsigned long lastRead = millis();
     while (www.connected() && (millis() - lastRead < IDLE_TIMEOUT_MS)) {
       // read to the first white space
       while (www.available()) {
         char c = www.read();
-        if (i < SUCCESS_RESPONSE_SIZE) {
-          Serial.print(SUCCESS_RESPONSE[i]);
+        //Serial.print(c);
+        if (success && i < SUCCESS_RESPONSE_SIZE) {
           if (c != SUCCESS_RESPONSE[i++]) {
-            Serial.print(FAIL_MSG);
-            www.close();
-            return 1;
+            success = false;
           }
         }
         lastRead = millis();
       }
     }
-    
-    Serial.print(OK_MSG);
-    
-  } else {
-    Serial.print(FAIL_MSG);
+  } 
+  
+  if (!success) {
     www.close();
     return 1;
   }
@@ -197,7 +205,7 @@ void reportFiles() {
       }
     }
     
-    Serial.print("read ");
+    Serial.print(F("read "));
     cbPrintFilename(filename, dir);
     Serial.print(filename);
     
@@ -217,7 +225,7 @@ void reportFiles() {
     
     //file.rewind();
 
-    Serial.print("srv1 ");    
+    Serial.print(F("http"));    
     if(reportFile(&file, primaryIP, PRIMARY_SERVER) == 0) {
       // successfully sent the data
       // so we can remove this file
@@ -231,6 +239,7 @@ void reportFiles() {
     
 nextfile:;
   }
+  
 }
 
 

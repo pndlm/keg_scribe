@@ -99,13 +99,14 @@ uint32_t getPrimaryServerIP(Adafruit_CC3000* cc3000) {
     if (ip == 0) {
       Serial.print(F("nslookup "));
       Serial.print(PRIMARY_SERVER);
-      if (! cc3000->getHostByName(PRIMARY_SERVER, &ip)) {
+      if (! cc3000->getHostByName((char*)PRIMARY_SERVER, &ip)) {
         Serial.print(FAIL_MSG);
         return 0;
       }
     }
   #endif
   
+  Serial.print(' ');
   cc3000->printIPdotsRev(ip);
   Serial.print(NEWLINE_MSG);
   

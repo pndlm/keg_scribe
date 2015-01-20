@@ -11,10 +11,10 @@
 // success and failure messages
 // and other reoccuring strings
 // used throughout the application
-const char OK_MSG[]   = " ok\r\n";
-const char FAIL_MSG[] = " fail\r\n";
-const char NEWLINE_MSG[] = "\r\n";
-const char CSV_SEPARATOR = ',';
+const char* OK_MSG   = " ok\r\n";
+const char* FAIL_MSG = " fail\r\n";
+const char* NEWLINE_MSG = "\r\n";
+const char  CSV_SEPARATOR = ',';
 
 // change these pin numbers to fit your needs
 // since we use the CC3000 Wifi Shield these
@@ -27,16 +27,16 @@ const char CSV_SEPARATOR = ',';
 
 // These are strings that uniquely identify
 // the different data feeds to our web server
-#define TEMPERATURE1_IMPORT_CODE "KegScribeAmbientTemperature"
-#define TEMPERATURE2_IMPORT_CODE "KegScribeFridgeTemperature"
-#define TAP1_IMPORT_CODE         "KegScribeTap1"
-#define TAP2_IMPORT_CODE         "KegScribeTap2"
+#define TEMPERATURE1_IMPORT_CODE F("KegScribeAmbientTemperature")
+#define TEMPERATURE2_IMPORT_CODE F("KegScribeFridgeTemperature")
+#define TAP1_IMPORT_CODE         F("KegScribeTap1")
+#define TAP2_IMPORT_CODE         F("KegScribeTap2")
 
 // number of milliseconds between recording to SD card
 #define RECORD_INTERVAL (1000UL*60UL*5UL)
 
 // number of milliseconds between reports to the web server
-#define REPORT_INTERVAL (1000UL*60UL*1UL)
+#define REPORT_INTERVAL 0 // (1000UL*60UL*1UL)
 
 // number of seconds between calls to the NTP server
 #define NTP_INTERVAL    (60*60*24)
@@ -57,23 +57,13 @@ const byte flowSensorPin[2] = {
   FLOWSENSOR2_DIGITAL_PIN
 };
 
-const char* tempSensorCode[2] = {
-  TEMPERATURE1_IMPORT_CODE,
-  TEMPERATURE2_IMPORT_CODE
-};
-
-const char* flowSensorCode[2] = {
-  TAP1_IMPORT_CODE,
-  TAP2_IMPORT_CODE
-};
-
 void setup() {
   Serial.begin(115200);
-  Serial.print(F("KegScribe 1.1\r\n")); 
+  Serial.print(F("KegScribe 1.1\r\n"));
   
-  //Serial.print(F("FreeRam: "));
-  //Serial.print(FreeRam(), DEC);
-  //Serial.print(NEWLINE_MSG);
+  Serial.print(F("FreeRam: "));
+  Serial.print(FreeRam(), DEC);
+  Serial.print(NEWLINE_MSG);
   
   // Fat16 lib may need
   // to be inited first.
@@ -90,6 +80,16 @@ void setup() {
 unsigned long millisSinceLastReport = 0;
 
 void loop() {
+  
+  static const __FlashStringHelper* tempSensorCode[2] = {
+    TEMPERATURE1_IMPORT_CODE,
+    TEMPERATURE2_IMPORT_CODE
+  };
+  
+  static const __FlashStringHelper* flowSensorCode[2] = {
+    TAP1_IMPORT_CODE,
+    TAP2_IMPORT_CODE
+  };
     
   // Get the current time
   time_t currentTime = now();
