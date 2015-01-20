@@ -192,6 +192,8 @@ void reportFiles() {
   uint32_t primaryIP = getPrimaryServerIP(cc3000);
   //uint32_t secondaryIP = getSecondaryServerIP(cc3000);
   
+  boolean success = false;
+  
   for (uint16_t index = 0; file.readDir(&dir, &index, DIR_ATT_VOLUME_ID); index++) {
     
     if (!DIR_IS_FILE(&dir)) {
@@ -225,17 +227,30 @@ void reportFiles() {
     
     //file.rewind();
 
-    Serial.print(F("http"));    
-    if(reportFile(&file, primaryIP, PRIMARY_SERVER) == 0) {
+    Serial.print(F("http"));
+  
+    success = (reportFile(&file, primaryIP, PRIMARY_SERVER) == 0);
+
+    Serial.print(F(" close"));
+
+    file.close();
+    
+    if(success) {
+      Serial.print(OK_MSG);
+      
       // successfully sent the data
       // so we can remove this file
-      file.remove(filename);
-      Serial.print(OK_MSG);
+      Serial.print(F("rm"));
+      
+      if (file.remove(filename)) {
+        Serial.print(OK_MSG);
+      } else {
+        Serial.print(FAIL_MSG);
+      }
+      
     } else {
       Serial.print(FAIL_MSG);
     }
-    
-    file.close();
     
 nextfile:;
   }
