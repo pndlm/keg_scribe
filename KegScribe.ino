@@ -7,6 +7,7 @@
 
 // for a smaller footprint
 #define SERIAL_BUFFER_SIZE 32
+#define CC3000_TINY_DRIVER
 
 // success and failure messages
 // and other reoccuring strings
