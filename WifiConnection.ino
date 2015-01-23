@@ -16,7 +16,8 @@ Adafruit_CC3000 cc3000 = Adafruit_CC3000(ADAFRUIT_CC3000_CS, ADAFRUIT_CC3000_IRQ
 void initWifi() {
   
   /* Initialise the module */
-  Serial.print(F("wifi"));
+  Serial.print(F("wifi "));
+    
   if (!cc3000.begin())
   {
     Serial.print(FAIL_MSG);
@@ -24,6 +25,24 @@ void initWifi() {
   }
   Serial.print(OK_MSG);
   
+#ifdef USE_DHCP
+  Serial.print(F("dhcp"));
+  cc3000.setDHCP();
+#endif
+
+#ifdef USE_STATIC_IP
+  Serial.print(F("static"));
+  uint32_t ipAddress = cc3000.IP2U32(172, 16, 25, 240);
+  uint32_t netMask = cc3000.IP2U32(255, 255, 255, 0);
+  uint32_t defaultGateway = cc3000.IP2U32(172, 16, 25, 1);
+  uint32_t dns = cc3000.IP2U32(172, 16, 25, 1);
+  if (!cc3000.setStaticIPAddress(ipAddress, netMask, defaultGateway, dns)) {
+    Serial.print(FAIL_MSG);
+    while(1);
+  }
+  Serial.print(OK_MSG);
+#endif
+
   ensureWifiConnection();
   
 }
@@ -39,11 +58,13 @@ boolean ensureWifiConnection() {
     }
     Serial.print(OK_MSG);
     
+#ifdef USE_DHCP
     /* Wait for DHCP to complete */
     do
     {
       delay(100); // ToDo: Insert a DHCP timeout!
-    } while (!cc3000.checkDHCP()); 
+    } while (!cc3000.checkDHCP());
+#endif
   
     /* Display the IP address DNS, Gateway, etc. */  
     //while (! displayConnectionDetails()) {
