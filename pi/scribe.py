@@ -32,8 +32,8 @@ importTapTwoCode = "KegScribeTap2"
 importTempOfficeCode = "KegScribeAmbientTemperature"
 importTempKegCode = "KegScribeFridgeTemperature"
 
-Tap1Pin = 18
-Tap2Pin = 23
+Tap1Pin = 17
+Tap2Pin = 18
 
 lastPinState = False
 lastPinChange = 0
