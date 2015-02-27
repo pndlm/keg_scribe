@@ -100,11 +100,6 @@ def writePour(tapNumber, value):
 	with open(csvFilename, "a") as csvfile:
 		writer = csv.DictWriter(csvfile, csvColumns) # DickWriter, huehuehue
 		writer.writerow(getSample(importCode, value))
-	if putCsvFile():
-		resetFile()
-		log("Upload successful!")
-	else:
-		log("Upload failed - retaining file")
 
 def writeTemps(ambient, keg):
 	with open(csvFilename, "a") as csvfile:
@@ -151,6 +146,11 @@ def enterWorker():
 			log("Temperature probes: (Amb: {}, Keg: {})".format(str(ambientTmpF), str(kegTmpF)))
 			writeTemps(ambientTmpF, kegTmpF)
 			lastThermalProbe = currentTime
+		
+		if hasChangesForUpload():
+			log("Sending samples...")
+			if putCsvFile():
+				resetFile()
 
 def main():
 	print "KegScribe booting..."
