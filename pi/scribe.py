@@ -22,9 +22,6 @@ MIN_POUR = 0.01
 testUri = "http://demo.pndlm.com/"
 uploadUri = "http://hakase.pndlm.com/import/simpleCSV"
 
-fileWriteRate = 10 # append to CSV this often (s)
-fileUploadRate = 10 # upload CSV this often (s)
-
 csvFilename = "pour_values.csv"
 csvColumns = ["ImportCode", "UtcTimestamp", "Value"]
 
@@ -63,9 +60,9 @@ def putCsvFile():
 	try:
 		uploadFile = {"file": ("ksup.csv", open(csvFilename, "r"), "test/csv")}
 		res = requests.post(uploadUri, auth=requests.auth.HTTPBasicAuth("KEGSCRIBE", "KEGSCRIBE"), files=uploadFile)
-		log(res.text)
 		if res.status_code == requests.codes.ok:
 			lastUpload = int(time.time())
+			log("Upload complete")
 			return True
 		else:
 			log("Upload failed with response: {}".format(res.text))
@@ -74,8 +71,8 @@ def putCsvFile():
 		log("Upload failed with exception: {}".format(ex))
 	return False
 
-def getSample(code, pourLiters):
-	return {"ImportCode": code, "UtcTimestamp": int(time.time()), "Value": pourLiters}
+def getSample(code, value):
+	return {"ImportCode": code, "UtcTimestamp": int(time.time()), "Value": value}
 
 def resetFile():
 	# nuke and reset the file in place
@@ -94,7 +91,7 @@ def writePour(tapNumber, value):
 		importCode = importTapOneCode
 	elif tapNumber == 2:
 		importCode = importTapTwoCode
-	if tapNumber < 0 or tapNumber > 2: # TODO: Support tap2
+	if tapNumber < 0 or tapNumber > 2:
 		log("Invalid tap number")
 		return
 	with open(csvFilename, "a") as csvfile:
@@ -130,12 +127,12 @@ def enterWorker():
 	tempThreshold = 60000
 	while True:
 		currentTime = int(time.time()*MS_IN_A_SECOND)
-		if tap1.thisPour > MIN_POUR and (currentTime - lastTap1Pour) > 5000:
+		if tap1.thisPour > MIN_POUR and (currentTime - lastTap1Pour) > pourThreshold:
 			log("Tap 1 poured {} of beer".format(tap1.getFormattedThisPour()))
 			writePour(1, tap1.thisPour)			
 			lastTap1Pour = currentTime
 			tap1.thisPour = 0.0
-		if tap2.thisPour > MIN_POUR and (currentTime - lastTap2Pour) > 5000:
+		if tap2.thisPour > MIN_POUR and (currentTime - lastTap2Pour) > pourThreshold:
 			log("Tap 2 poured {} of beer".format(tap2.getFormattedThisPour()))
 			writePour(2, tap2.thisPour)
 			lastTap2Pour = currentTime
