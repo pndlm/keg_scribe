@@ -13,6 +13,7 @@ import requests
 import time
 from datetime import datetime
 from flowmeter import *
+from thermal_onewire import *
 
 # constants
 MS_IN_A_SECOND = 1000
@@ -54,6 +55,9 @@ def testConnection():
 	except Exception, ex:
 		log("Error: {}".format(ex))
 	return False	
+
+def hasChangesForUpload():
+	return sum(1 for line in open(csvFilename)) > 1 # account for the header that is always present
 
 def putCsvFile():
 	try:
@@ -102,6 +106,12 @@ def writePour(tapNumber, value):
 	else:
 		log("Upload failed - retaining file")
 
+def writeTemps(ambient, keg):
+	with open(csvFilename, "a") as csvfile:
+		writer = csv.DictWriter(csvfile, csvColumns)
+		writer.writerow(getSample(importTempOfficeCode, ambient))
+		writer.writerow(getSample(importTempKegCode, keg))
+
 def hookIOEvents():
 	GPIO.add_event_detect(Tap1Pin, GPIO.RISING, callback=updateTap1, bouncetime=20)
 	GPIO.add_event_detect(Tap2Pin, GPIO.RISING, callback=updateTap2, bouncetime=20)
@@ -120,6 +130,9 @@ def enterWorker():
 	log("Virtual alcohol moderator is serving, lol")
 	lastTap1Pour = 0
 	lastTap2Pour = 0
+	lastThermalProbe = 0
+	pourThreshold = 5000
+	tempThreshold = 60000
 	while True:
 		currentTime = int(time.time()*MS_IN_A_SECOND)
 		if tap1.thisPour > MIN_POUR and (currentTime - lastTap1Pour) > 5000:
@@ -132,7 +145,12 @@ def enterWorker():
 			writePour(2, tap2.thisPour)
 			lastTap2Pour = currentTime
 			tap2.thisPour = 0.0
-		# TODO: Test if we have samples and it's been over X seconds since last upload, instead of upload on each write
+		if (currentTime - lastThermalProbe) > tempThreshold:
+			ambientTmpF = get_external_temp()
+			kegTmpF = get_kegerator_temp()
+			log("Temperature probes: (Amb: {}, Keg: {})".format(str(ambientTmpF), str(kegTmpF)))
+			writeTemps(ambientTmpF, kegTmpF)
+			lastThermalProbe = currentTime
 
 def main():
 	print "KegScribe booting..."
