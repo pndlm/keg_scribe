@@ -32,7 +32,8 @@ importTapTwoCode = "KegScribeTap2"
 importTempOfficeCode = "KegScribeAmbientTemperature"
 importTempKegCode = "KegScribeFridgeTemperature"
 
-Tap1Pin = 17
+Tap1Pin = 18
+Tap2Pin = 23
 
 lastPinState = False
 lastPinChange = 0
@@ -41,6 +42,7 @@ lastUpload = 0
 
 # application state
 tap1 = FlowMeter("metric", "beer")
+tap2 = FlowMeter("metric", "beer")
 
 def log(str):
 	print "[{}] - {}".format(datetime.now().time(), str)
@@ -56,7 +58,7 @@ def testConnection():
 def putCsvFile():
 	try:
 		uploadFile = {"file": ("ksup.csv", open(csvFilename, "r"), "test/csv")}
-		res = requests.post(uploadUri, auth=requests.auth.HTTPBasicAuth("ASDF", "BATSHIT"), files=uploadFile)
+		res = requests.post(uploadUri, auth=requests.auth.HTTPBasicAuth("KEGSCRIBE", "KEGSCRIBE"), files=uploadFile)
 		log(res.text)
 		if res.status_code == requests.codes.ok:
 			lastUpload = int(time.time())
@@ -80,6 +82,7 @@ def resetFile():
 def setupPins():
 	GPIO.setmode(GPIO.BCM)
 	GPIO.setup(Tap1Pin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+	GPIO.setup(Tap2Pin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 
 def writePour(tapNumber, value):
 	importCode = " "
@@ -87,7 +90,7 @@ def writePour(tapNumber, value):
 		importCode = importTapOneCode
 	elif tapNumber == 2:
 		importCode = importTapTwoCode
-	if tapNumber != 1: # TODO: Support tap2
+	if tapNumber < 0 or tapNumber > 2: # TODO: Support tap2
 		log("Invalid tap number")
 		return
 	with open(csvFilename, "a") as csvfile:
@@ -101,7 +104,7 @@ def writePour(tapNumber, value):
 
 def hookIOEvents():
 	GPIO.add_event_detect(Tap1Pin, GPIO.RISING, callback=updateTap1, bouncetime=20)
-	# TODO: Tap2
+	GPIO.add_event_detect(Tap2Pin, GPIO.RISING, callback=updateTap2, bouncetime=20)
 
 def updateTap1(channel):
 	currentTime = int(time.time() * MS_IN_A_SECOND)
@@ -109,18 +112,27 @@ def updateTap1(channel):
 		tap1.update(currentTime)
 
 def updateTap2(channel):
-	pass # TODO
+	currentTime = int(time.time() * MS_IN_A_SECOND)
+	if tap2.enabled == True:
+		tap2.update(currentTime)
 
 def enterWorker():
 	log("Virtual alcohol moderator is serving, lol")
-	lastPour = 0
+	lastTap1Pour = 0
+	lastTap2Pour = 0
 	while True:
 		currentTime = int(time.time()*MS_IN_A_SECOND)
-		if tap1.thisPour > MIN_POUR and (currentTime - lastPour) > 5000:
-			log("Tap 1 Poured {} of beer".format(tap1.getFormattedThisPour()))
+		if tap1.thisPour > MIN_POUR and (currentTime - lastTap1Pour) > 5000:
+			log("Tap 1 poured {} of beer".format(tap1.getFormattedThisPour()))
 			writePour(1, tap1.thisPour)			
-			lastPour = int(time.time() * MS_IN_A_SECOND)
+			lastTap1Pour = currentTime
 			tap1.thisPour = 0.0
+		if tap2.thisPour > MIN_POUR and (currentTime - lastTap2Pour) > 5000:
+			log("Tap 2 poured {} of beer".format(tap2.getFormattedThisPour()))
+			writePour(2, tap2.thisPour)
+			lastTap2Pour = currentTime
+			tap2.thisPour = 0.0
+		# TODO: Test if we have samples and it's been over X seconds since last upload, instead of upload on each write
 
 def main():
 	print "KegScribe booting..."
